@@ -18,7 +18,7 @@ optimization, aka tuning. Interestingly, the optimal hyperparameter
 ** Real world data
 
 In the project we will work with a random subset of the data described
-in Wikkelsø et al. 2014 [[sec:refs]]. The dataset contains data from 48272
+in Wikkelsø et al. 2014 (Reference [1] below). The dataset contains data from 48272
 Danish women who gave birth twice. The main outcome is a binary
 variable called =PPHbin= which indicates if the woman had a postpartum
 haemorrhage (heavy bleeding) during the second delivery.
@@ -90,9 +90,8 @@ ggplot(x, aes(x=log(lambda), y=std.MSE, col=model)) + theme_bw() +
 #+END_SRC
 
 * References
-<<sec:refs>>
 
-[1] Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
+1. Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
     Jens Langhoff-Roos. Prediction of postpartum blood transfusion --
     risk factors and recurrence. The Journal of Maternal-Fetal &
     Neonatal Medicine, 27(16):1661-1667, 2014.
