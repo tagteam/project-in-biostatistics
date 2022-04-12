@@ -1,0 +1,92 @@
+* Project in biostatistics: hyperparameter optimization
+
+** Background
+
+We consider two different problems of applied biostatistics:
+
+1. the making of a medical risk prediction model
+2. semi-parametric estimation of a real valued target parameter in the presence of a high dimensional nuissance parameter
+
+Both problems can be approached using methods from machine learning
+and hence they share the task of hyperparameter optimization, aka
+tuning.
+
+# hyperparameter selection for smooth functional estimation. nested
+# crossvalidation. here is the efficient influence function, we need
+# to estimate it.
+
+** Real world data
+
+In the project we will work with a random subset of the data described
+in \cite{wikkelso2014prediction}. The dataset contains data from 48272
+Danish women who gave birth twice. The main outcome is a binary
+variable called =PPHbin= which indicates if the woman had a postpartum
+haemorrhage (heavy bleeding) during the second delivery.  
+
+Analyzing the secondary delivery has the advantage that we can use
+information from the first delivery to predict the decision to have a
+planned cesarian section and to predict the outcome.
+
+In particular, note that the decision to plan a cesarian section was
+not randomized. With causal tools we want to analyze the causal effect
+of a planned cesarian section on the risk of postpartum haemorrhage,
+i.e., the effect that one would have observed in a hypothetical study
+which randomizes women to either intended cesarian section or intended
+vaginal birth.
+
+** Example: Tuning a penalized linear regression
+
+#+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache yes  
+library(glmnet)
+library(data.table)
+library(ggplot2)
+library(riskRegression)
+library(lava)
+library(foreach)
+
+simulator <- function(n=1000, p=10, effect.size){
+  X = paste0("X",1:10)
+  m =  lvm()
+  distribution(m,X) = normal.lvm()
+  distribution(m,"A") = binomial.lvm()
+  distribution(m,"Y") = normal.lvm()
+  regression(m) = as.formula(paste0("Y ~ f(A,",effect.size,")"))
+  return(sim(m,n))
+}
+glm(Y~A,data = simulator(effect.size = .8))
+
+runner <- function(M, lambda=round(exp(seq(2.5, -4, length.out=200)),4), alpha=0, ...){
+  out <- foreach(m = 1:M,.combine = "rbind") %do%{
+    train <- simulator(n = 1000, effect.size = .2)
+    model <- glmnet(train[, -match("Y",names(train))], train[,"Y"], alpha=alpha, lambda=lambda,...)
+    test <- simulator(n=10000,effect.size = .2)
+    predicted.values <- predict(model, newx=as.matrix(test[, -match("Y",names(test))]))
+    ## Mean squared prediction error
+    ## +++++++++++++++++++++++++++++
+    prediction.error <- data.table(lambda=lambda,
+                                   mse=apply((predicted.values - test[["Y"]])^2, 2, mean),
+                                   model="nuisance",
+                                   sim=m)
+    ## Mean squared error of G-formula estimate of target parameter
+    ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    dat.copy <- copy(train)
+    dat.copy[["A"]] = 0
+    fit0 <- predict(model, newx=as.matrix(dat.copy[, -1]))
+    dat.copy[["A"]] = 1
+    fit1 <- predict(model, newx=as.matrix(dat.copy[, -1]))
+    mse.target <- data.table(lambda=lambda,mse=(apply(fit1-fit0, 2, mean)-effect.size)^2,model="target",sim=m)
+    return(rbind(prediction.error, mse.target))
+  }
+  Out = out[,.(MSE =mean(mse)),by = c("lambda","model")]
+  return(Out[])
+}
+set.seed(341)
+x <- runner(M=20)
+
+x[, std.MSE := (MSE-min(MSE))/(max(MSE)-min(MSE)), by = .(model)]
+ggplot(x, aes(x=log(lambda), y=std.MSE, col=model)) + theme_bw() +
+  geom_line() + ylab("Standardized MSE") + 
+  geom_point(data=x[std.MSE==0], size=2) 
+#+END_SRC
+
+ 
