@@ -1,6 +1,6 @@
 * Project in biostatistics: hyperparameter optimization
 
-** Background
+** Background and motivation
 
 We consider two different problems of applied biostatistics:
 
@@ -12,7 +12,10 @@ and hence they share the important task of hyperparameter
 optimization, aka tuning. Interestingly, the optimal value of the
 hyperparameter of a machine learning method is typically not the same
 for the two problems. This phenomenom is illustrated by the R-code
-below in the case of a penalized linear regression (ridge regression).
+below in the case of a penalized linear ridge regression with tuning
+parameter lambda. Compared are the optimal lambda values for
+1. predicting the outcome Y and 2. the average treatment effect of a
+binary variable A.
 
 *** Example: Tuning a penalized linear regression
 
@@ -45,7 +48,7 @@ runner <- function(M, lambda=round(exp(seq(2.5, -4, length.out=200)),4), alpha=0
     ## +++++++++++++++++++++++++++++
     prediction.error <- data.table(lambda=lambda,
                                    mse=apply((predicted.values - test[["Y"]])^2, 2, mean),
-                                   model="nuisance",
+                                   target="prediction",
                                    sim=m)
     ## Mean squared error of G-formula estimate of target parameter
     ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -54,17 +57,17 @@ runner <- function(M, lambda=round(exp(seq(2.5, -4, length.out=200)),4), alpha=0
     fit0 <- predict(model, newx=as.matrix(dat.copy[, -1]))
     dat.copy[["A"]] = 1
     fit1 <- predict(model, newx=as.matrix(dat.copy[, -1]))
-    mse.target <- data.table(lambda=lambda,mse=(apply(fit1-fit0, 2, mean)-effect.size)^2,model="target",sim=m)
+    mse.target <- data.table(lambda=lambda,mse=(apply(fit1-fit0, 2, mean)-effect.size)^2,target="ATE",sim=m)
     return(rbind(prediction.error, mse.target))
   }
-  Out = out[,.(MSE =mean(mse)),by = c("lambda","model")]
+  Out = out[,.(MSE =mean(mse)),by = c("lambda","target")]
   return(Out[])
 }
 set.seed(341)
 x <- runner(M=20)
 
-x[, std.MSE := (MSE-min(MSE))/(max(MSE)-min(MSE)), by = .(model)]
-ggplot(x, aes(x=log(lambda), y=std.MSE, col=model)) + theme_bw() +
+x[, std.MSE := (MSE-min(MSE))/(max(MSE)-min(MSE)), by = .(target)]
+ggplot(x, aes(x=log(lambda), y=std.MSE, col=target)) + theme_bw() +
   geom_line() + ylab("Standardized MSE") + 
   geom_point(data=x[std.MSE==0], size=2) 
 #+END_SRC
@@ -77,26 +80,55 @@ et al. 2014 (Reference [1] below). The dataset contains data from
 variable called =PPHbin= which indicates if the woman had a postpartum
 haemorrhage (heavy bleeding) during the second delivery.
 
-Analyzing the secondary delivery has the advantage that we can use
-information from the first delivery to predict the decision to have a
-planned cesarian section and to predict the outcome.
+1. You develop a model that predicts postpartum haemorrhage at the
+   second delivery based on characteristics of the first delivery.
+2. You estimate the causal effect of a planned cesarian section on the
+   risk of postpartum haemorrhage, i.e., the effect of a hypothetical study
+   which randomizes women to either intended cesarian section or intended
+   vaginal birth.
 
-In particular, note that the decision to plan a cesarian section was
-not randomized. With causal tools we want to analyze the causal effect
-of a planned cesarian section on the risk of postpartum haemorrhage,
-i.e., the effect that one would have observed in a hypothetical study
-which randomizes women to either intended cesarian section or intended
-vaginal birth.
+* Methodology
+
+Here are some keywords and references. Detailed instructions regarding
+the project work are provided at the group meetings.
+
+** Prediction model
+
+You choose a machine learning method for binary outcomes:
+
+ - penalized regression 
+ - random forest
+ - superlearner 
+   
+
+** Mean squared error of prediction
+
+You estimate the mean squared error of prediction using the Brier
+score. You describe the challenges of cross-validation in theoretical
+terms (formula that describes the cross-validation estimator of MSE,
+what is estimated?) and practical terms (Monte-Carlo error, choice of
+folds).
+
+** Causal inference
+
+You describe the causal effect with counterfactual variables and
+discuss the assumptions that are needed in order to identify the
+causal effect from the real world data from a theoretical (definition
+of the assumptions) and from an applied perspective (how likely are
+they satisfied).
 
 ** Semi-parametric efficiency theory
 
-** Cross-validation
-
-# hyperparameter selection for smooth functional estimation. nested
-# crossvalidation. here is the efficient influence function, we need
-# to estimate it.
-
-
+You describe the target parameter, i.e., the causal effect, as a
+functional operating on the space of probability measures of the
+observations \(Y,A,W\) where \(Y\) is the outcome (postpartum
+haemorrhage), \(A\) the treatment (planned cesarian section) and W all
+the variables from the first birth. You derive the canonical gradient
+of the functional (aka the Gateaux derivative). You estimate the
+nuissance parameters using the prediction model from above and a
+second model which predicts the probability of a planned cesarian
+section \(A=1\) based on \(W\).
+ 
 
 * References
 
