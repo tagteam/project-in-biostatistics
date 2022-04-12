@@ -7,9 +7,9 @@ We consider two different problems of applied biostatistics:
 1. the making of a medical risk prediction model
 2. semi-parametric estimation of a real valued target parameter in the presence of a high dimensional nuissance parameter
 
-Both problems can be approached using methods from machine learning
-and hence they share the task of hyperparameter optimization, aka
-tuning.
+Both problems can be approached using methods from machine learning 
+and hence they share the important task of hyperparameter
+optimization, aka tuning. Interestingly, the optimal hyperparameter
 
 # hyperparameter selection for smooth functional estimation. nested
 # crossvalidation. here is the efficient influence function, we need
@@ -18,7 +18,7 @@ tuning.
 ** Real world data
 
 In the project we will work with a random subset of the data described
-in Wikkelsø et al. 2014 [fn:1]. The dataset contains data from 48272
+in Wikkelsø et al. 2014 [[sec:refs]]. The dataset contains data from 48272
 Danish women who gave birth twice. The main outcome is a binary
 variable called =PPHbin= which indicates if the woman had a postpartum
 haemorrhage (heavy bleeding) during the second delivery.
@@ -89,7 +89,11 @@ ggplot(x, aes(x=log(lambda), y=std.MSE, col=model)) + theme_bw() +
   geom_point(data=x[std.MSE==0], size=2) 
 #+END_SRC
 
-[fn:1] Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
+* References
+<<sec:refs>>
+
+[1] Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
     Jens Langhoff-Roos. Prediction of postpartum blood transfusion --
     risk factors and recurrence. The Journal of Maternal-Fetal &
     Neonatal Medicine, 27(16):1661-1667, 2014.
+
