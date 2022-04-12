@@ -7,36 +7,16 @@ We consider two different problems of applied biostatistics:
 1. the making of a medical risk prediction model
 2. semi-parametric estimation of a real valued target parameter in the presence of a high dimensional nuissance parameter
 
-Both problems can be approached using methods from machine learning 
+Both problems can be approached using methods from machine learning
 and hence they share the important task of hyperparameter
-optimization, aka tuning. Interestingly, the optimal hyperparameter
+optimization, aka tuning. Interestingly, the optimal value of the
+hyperparameter of a machine learning method is typically not the same
+for the two problems. This phenomenom is illustrated by the R-code
+below in the case of a penalized linear regression (ridge regression).
 
-# hyperparameter selection for smooth functional estimation. nested
-# crossvalidation. here is the efficient influence function, we need
-# to estimate it.
+*** Example: Tuning a penalized linear regression
 
-** Real world data
-
-In the project we will work with a random subset of the data described
-in Wikkelsø et al. 2014 (Reference [1] below). The dataset contains data from 48272
-Danish women who gave birth twice. The main outcome is a binary
-variable called =PPHbin= which indicates if the woman had a postpartum
-haemorrhage (heavy bleeding) during the second delivery.
-
-Analyzing the secondary delivery has the advantage that we can use
-information from the first delivery to predict the decision to have a
-planned cesarian section and to predict the outcome.
-
-In particular, note that the decision to plan a cesarian section was
-not randomized. With causal tools we want to analyze the causal effect
-of a planned cesarian section on the risk of postpartum haemorrhage,
-i.e., the effect that one would have observed in a hypothetical study
-which randomizes women to either intended cesarian section or intended
-vaginal birth.
-
-** Example: Tuning a penalized linear regression
-
-#+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache yes  
+#+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
 library(glmnet)
 library(data.table)
 library(ggplot2)
@@ -88,6 +68,35 @@ ggplot(x, aes(x=log(lambda), y=std.MSE, col=model)) + theme_bw() +
   geom_line() + ylab("Standardized MSE") + 
   geom_point(data=x[std.MSE==0], size=2) 
 #+END_SRC
+
+** Real world data
+
+You will work with a random subset of the data described in Wikkelsø
+et al. 2014 (Reference [1] below). The dataset contains data from
+48272 Danish women who gave birth twice. The main outcome is a binary
+variable called =PPHbin= which indicates if the woman had a postpartum
+haemorrhage (heavy bleeding) during the second delivery.
+
+Analyzing the secondary delivery has the advantage that we can use
+information from the first delivery to predict the decision to have a
+planned cesarian section and to predict the outcome.
+
+In particular, note that the decision to plan a cesarian section was
+not randomized. With causal tools we want to analyze the causal effect
+of a planned cesarian section on the risk of postpartum haemorrhage,
+i.e., the effect that one would have observed in a hypothetical study
+which randomizes women to either intended cesarian section or intended
+vaginal birth.
+
+** Semi-parametric efficiency theory
+
+** Cross-validation
+
+# hyperparameter selection for smooth functional estimation. nested
+# crossvalidation. here is the efficient influence function, we need
+# to estimate it.
+
+
 
 * References
 
