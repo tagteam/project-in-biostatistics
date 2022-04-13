@@ -143,13 +143,13 @@ they satisfied).
 
 Describe the target parameter, i.e., the causal effect, as a
 functional operating on the space of probability measures of the
-observations $Y,A,W$ where $Y$ is the outcome (postpartum
-haemorrhage), $A$ the treatment (planned cesarian section) and W all
+observations Y,A,W where Y is the outcome (postpartum
+haemorrhage), A the treatment (planned cesarian section) and W all
 the variables from the first birth. Derive the canonical gradient of
 the functional (aka the Gateaux derivative). Estimate the nuissance
 parameters using the prediction model from above and a second model
-which predicts the probability of a planned cesarian section $A=1$
-based on $W$.
+which predicts the probability of a planned cesarian section A=1
+based on W.
  
 
 
