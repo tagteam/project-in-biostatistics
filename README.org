@@ -13,9 +13,10 @@ optimization, aka tuning. Interestingly, the optimal value of the
 hyperparameter of a machine learning method is typically not the same
 for the two problems. This phenomenom is illustrated by the R-code
 below in the case of a penalized linear ridge regression with tuning
-parameter lambda. Compared are the optimal lambda values for
-1. predicting the outcome Y and 2. the average treatment effect of a
-binary variable A.
+parameter lambda. Compared are the optimal lambda values for:
+
+1. predicting the outcome Y
+2. the average treatment effect of a binary variable A.
 
 *** Example: Tuning a penalized linear regression
 
@@ -88,10 +89,16 @@ bleeding) during the second delivery.
    which randomizes women to either intended cesarian section or intended
    vaginal birth.
 
-[fn:1] Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
-    Jens Langhoff-Roos. Prediction of postpartum blood transfusion --
-    risk factors and recurrence. The Journal of Maternal-Fetal &
-    Neonatal Medicine, 27(16):1661-1667, 2014.   
+** Project work
+
+The overall theme is the hyperparameter tuning of a (machine) learning
+method for
+
+1. predicting risk of postpartum haemorrhage at second delivery
+2. estimating the causal effect of a planned cesarian section
+
+Each student will set own distribution of work across the building
+blocks of biostatistics: theory, simulation and data analysis. 
 
 * Methodology
 
@@ -102,7 +109,7 @@ the project work are provided at the group meetings.
 
 - [[https://www.khstats.com/blog/sl/superlearning/][Hoffman's blog]]
 
-You choose a (machine) learning method for binary outcomes:
+Choose a (machine) learning method for binary outcomes:
 
  - gam
  - penalized regression 
@@ -110,13 +117,12 @@ You choose a (machine) learning method for binary outcomes:
  - gbm
  - superlearner 
    
-
 ** Brier score: mean squared error of prediction
 
 - [[https://github.com/tagteam/riskRegression][riskRegression]]
 
-You estimate the mean squared error of prediction using the Brier
-score. You describe the challenges of cross-validation in theoretical
+Estimate the mean squared error of prediction using the Brier
+score. Describe the challenges of cross-validation in theoretical
 terms (formula that describes the cross-validation estimator of MSE,
 what is estimated?) and practical terms (Monte-Carlo error, choice of
 folds).
@@ -125,7 +131,7 @@ folds).
 
 - [[https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/][Hernan & Robins]]
 
-You describe the causal effect with counterfactual variables and
+Describe the causal effect with counterfactual variables and
 discuss the assumptions that are needed in order to identify the
 causal effect from the real world data from a theoretical (definition
 of the assumptions) and from an applied perspective (how likely are
@@ -135,15 +141,15 @@ they satisfied).
 
 - [[https://arxiv.org/abs/2203.06469][Kennedy 2022]]
 
-You describe the target parameter, i.e., the causal effect, as a
+Describe the target parameter, i.e., the causal effect, as a
 functional operating on the space of probability measures of the
-observations \(Y,A,W\) where \(Y\) is the outcome (postpartum
-haemorrhage), \(A\) the treatment (planned cesarian section) and W all
-the variables from the first birth. You derive the canonical gradient
-of the functional (aka the Gateaux derivative). You estimate the
-nuissance parameters using the prediction model from above and a
-second model which predicts the probability of a planned cesarian
-section \(A=1\) based on \(W\).
+observations $Y,A,W$ where $Y$ is the outcome (postpartum
+haemorrhage), $A$ the treatment (planned cesarian section) and W all
+the variables from the first birth. Derive the canonical gradient of
+the functional (aka the Gateaux derivative). Estimate the nuissance
+parameters using the prediction model from above and a second model
+which predicts the probability of a planned cesarian section $A=1$
+based on $W$.
  
 
 
