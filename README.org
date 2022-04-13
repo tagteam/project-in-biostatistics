@@ -75,10 +75,11 @@ ggplot(x, aes(x=log(lambda), y=std.MSE, col=target)) + theme_bw() +
 ** Real world data
 
 You will work with a random subset of the data described in Wikkelsø
-et al. 2014 (Reference [1] below). The dataset contains data from
-48272 Danish women who gave birth twice. The main outcome is a binary
-variable called =PPHbin= which indicates if the woman had a postpartum
-haemorrhage (heavy bleeding) during the second delivery.
+et al. 2014 ([[https://www.tandfonline.com/doi/full/10.3109/14767058.2013.872095][The Journal of Maternal-Fetal & Neonatal Medicine, 27(16):1661-1667, 2014]]).
+The dataset contains data from 48272 Danish women who gave
+birth twice. The main outcome is a binary variable called =PPHbin=
+which indicates if the woman had a postpartum haemorrhage (heavy
+bleeding) during the second delivery.
 
 1. You develop a model that predicts postpartum haemorrhage at the
    second delivery based on characteristics of the first delivery.
@@ -87,21 +88,32 @@ haemorrhage (heavy bleeding) during the second delivery.
    which randomizes women to either intended cesarian section or intended
    vaginal birth.
 
+[fn:1] Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
+    Jens Langhoff-Roos. Prediction of postpartum blood transfusion --
+    risk factors and recurrence. The Journal of Maternal-Fetal &
+    Neonatal Medicine, 27(16):1661-1667, 2014.   
+
 * Methodology
 
 Here are some keywords and references. Detailed instructions regarding
-the project work are provided at the group meetings.
+the project work are provided at the group meetings. 
 
 ** Prediction model
 
-You choose a machine learning method for binary outcomes:
+- [[https://www.khstats.com/blog/sl/superlearning/][Hoffman's blog]]
 
+You choose a (machine) learning method for binary outcomes:
+
+ - gam
  - penalized regression 
  - random forest
+ - gbm
  - superlearner 
    
 
-** Mean squared error of prediction
+** Brier score: mean squared error of prediction
+
+- [[https://github.com/tagteam/riskRegression][riskRegression]]
 
 You estimate the mean squared error of prediction using the Brier
 score. You describe the challenges of cross-validation in theoretical
@@ -111,6 +123,8 @@ folds).
 
 ** Causal inference
 
+- [[https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/][Hernan & Robins]]
+
 You describe the causal effect with counterfactual variables and
 discuss the assumptions that are needed in order to identify the
 causal effect from the real world data from a theoretical (definition
@@ -118,6 +132,8 @@ of the assumptions) and from an applied perspective (how likely are
 they satisfied).
 
 ** Semi-parametric efficiency theory
+
+- [[https://arxiv.org/abs/2203.06469][Kennedy 2022]]
 
 You describe the target parameter, i.e., the causal effect, as a
 functional operating on the space of probability measures of the
@@ -130,10 +146,5 @@ second model which predicts the probability of a planned cesarian
 section \(A=1\) based on \(W\).
  
 
-* References
 
-1. Anne J Wikkelsø, Sofie Hjortø, Thomas A Gerds, Ann M Møller, and
-    Jens Langhoff-Roos. Prediction of postpartum blood transfusion --
-    risk factors and recurrence. The Journal of Maternal-Fetal &
-    Neonatal Medicine, 27(16):1661-1667, 2014.
 
