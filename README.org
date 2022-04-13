@@ -2,7 +2,8 @@
 
 ** Background and motivation
 
-We consider two different problems of applied biostatistics:
+We consider the following two different problems of applied
+biostatistics:
 
 1. the making of a medical risk prediction model
 2. semi-parametric estimation of a real valued target parameter in the presence of a high dimensional nuissance parameter
