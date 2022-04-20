@@ -1,0 +1,40 @@
+\begin{thebibliography}{1}
+
+\bibitem{chernozhukov2018double}
+Victor Chernozhukov, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian
+  Hansen, Whitney Newey, and James Robins.
+\newblock Double/debiased machine learning for treatment and structural
+  parameters, 2018.
+
+\bibitem{HoffmanBlog}
+Katherine Hoffman.
+\newblock Khstats.
+\newblock \url{https://www.khstats.com/blog/sl/superlearning/}.
+\newblock Accessed: 2022-04-19.
+
+\bibitem{kennedy2022semiparametric}
+Edward~H Kennedy.
+\newblock Semiparametric doubly robust targeted double machine learning: a
+  review.
+\newblock {\em arXiv preprint arXiv:2203.06469}, 2022.
+
+\bibitem{van2011targeted}
+Mark~J van~der Laan and Sherri Rose.
+\newblock {\em Targeted learning: causal inference for observational and
+  experimental data}.
+\newblock Springer Science \& Business Media, 2011.
+
+\bibitem{van2006targeted}
+Mark~J van~der Laan and Daniel Rubin.
+\newblock Targeted maximum likelihood learning.
+\newblock {\em The international journal of biostatistics}, 2(1), 2006.
+
+\bibitem{wikkelso2014prediction}
+Anne~J Wikkels{\o}, Sofie Hjort{\o}e, Thomas~A Gerds, Ann~M M{\o}ller, and Jens
+  Langhoff-Roos.
+\newblock Prediction of postpartum blood transfusion--risk factors and
+  recurrence.
+\newblock {\em The Journal of Maternal-Fetal \& Neonatal Medicine},
+  27(16):1661--1667, 2014.
+
+\end{thebibliography}

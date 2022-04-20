@@ -1,0 +1,183 @@
+* Notes/tasks                                                      :noexport:
+- [ ] Make simulation plots
+- [ ] Mathematical formulation of the problem -- where to fit that in?
+- [ ] Access to data? Talk to Thomas about GDPR etc...???
+- The impact of the hyperparameter / choice of model
+
+* Outline of the setting
+#+begin_export latex
+Let $\mathcal{P}$ be a collection of probability measures over $\R^{d+2}$, so that
+$O \sim P \in \mathcal{P}$, with $O = (Y, A, X)$, $Y\in \R$, $A\in \R$, and $X \in \R^d$.
+
+\vfill
+
+We consider estimation of a parameter $\theta \colon \mathcal{P} \rightarrow \Theta$, where $\Theta$
+is either a \textbf{high-} or a \textbf{low-dimensional} space:
+#+end_export
+
+\vfill
+
+1. Risk prediction model: For some suitable function space $\mathcal{F}$, the parameter of interest
+   is $\nu \colon \mathcal{P} \rightarrow \mathcal{F}$, \[\nu(P) = f, \text{ for } f(x, a) = \E_P[Y
+   \mid X=x, A=a]. \]
+2. Low-dimensional (causal) target parameter, for instance the average treatment effect: The
+   parameter of interest is $\Psi \colon \mathcal{P} \rightarrow \R$, \[\Psi(P) = \E_P{\left[ \E_P[Y
+   \mid X, A=1] - \E_P[Y \mid X, A=0] \right]}. \]
+
+* Data
+You will work with a random subset of the data described in \cite{wikkelso2014prediction}. The
+dataset contains data from 48,272 Danish women who gave birth twice. The main outcome is a binary
+variable called PPH which indicates if the woman had a postpartum haemorrhage (heavy bleeding)
+during the second delivery.
+
+\vfill
+
+** High- and low-dimensional inference problems
+1. Predicting the risk of PPH at second delivery. 
+2. Estimating the causal effect of a planned cesarian section on PPH.
+
+* Hyperparameter and model selection/construction
+Estimation of $\nu$ is a well-studied problem. Many (machine) learning approaches depend on one or
+more hyperparameters that has to be tuned. We want to examine how to do this properly, and what the
+practical effects are of the different possible approaches.
+
+\vfill
+
+** Examples of things to consider
+
+- How do we evaluate the performance of a candidate model?
+- Do we select a single candidate model as our final model, or do we combine the candidate models
+  into one? One approach is the Super Learner \citep{van2011targeted,HoffmanBlog}.
+- What kind of theoretical guarantees do we get when using cross-validation to select/construct a model?
+- How does the different approaches play out in practice?
+
+* Target parameter and causal inference
+** Target parameter
+By explicitly defining a parameter of interest as an answer to a concrete scientific question, we
+ensure that we can draw relevant and meaningful conclusions from our statistical analysis.
+
+** High-dimensional nuisance parameter
+By allowing high-dimensional nuisance parameters we avoid having to make unrealistic model
+assumptions.
+
+** Causal inference
+One example is the average treatment effect, \[\Psi(P) = \E_P{[\nu(X, 1) -\nu(X, 0)]}, \quad
+\nu=\nu(P) \in \mathcal{F}. \]
+
+- How do we formalize a causal question?
+- Which assumptions are needed for the above parameter to have a causal interpretation?
+- How likely are these assumptions to hold for the data at hand?
+
+* Targeted inference and hyperparameter selection
+Finding a good estimator $\hat\nu$ of $\nu$ *does /not/ necessarily provide a good plug-in estimator
+of $\Psi$*! $\rightarrow$ targeted learning and debiased ML
+\citep{van2006targeted,van2011targeted,chernozhukov2018double,kennedy2022semiparametric}.
+
+\hfill
+
+Let $\hat\nu_{\lambda}$ be the ridge regression estimator of $\nu$ with penalty parameter $\lambda$.
+Let $\hat\Psi_{\lambda}$ denote the plug-in estimator of $\Psi$ based on $\hat\nu_{\lambda}$, i.e.,
+\small
+#+begin_export latex
+\begin{equation*}
+  \hat\Psi_{\lambda} = \frac{1}{n}\sum_{i=1}^{n}
+  \left\{
+    \hat{\nu}_{\lambda}(X_i, 1)- \hat{\nu}_{\lambda}(X_i, 0)
+\right\}.
+\end{equation*}
+#+end_export
+
+
+#+BEGIN_SRC R :results output verbatim  :exports results  :session *R* :cache yes
+  library(glmnet)
+  library(data.table)
+  library(ggplot2)
+
+  effect.size <- 0.2
+  sim.dat <- function(n=1000, p=10){
+      X0 <- matrix(rnorm(n*p), nrow=n)
+      A <- 1*(runif(n) < .5)
+      Y <- A*effect.size + rnorm(n)
+      return(data.table(Y, A, X0))
+  }
+
+  sim.est <- function(M, lambda=exp(seq(5, -10, length.out=200)), alpha=0, ...){
+      out <- do.call(rbind, lapply(1:M, function(m){
+	  train <- sim.dat()
+	  model <- glmnet(train[, -1], train[,Y], alpha=alpha, lambda=lambda, ...)
+	  test <- sim.dat(n=10000)
+	  fit <- predict(model, newx=as.matrix(test[, -1]))    
+	  ## Nuisance fit
+	  est.nui <- data.table(lambda=lambda,mse=apply((fit - test[, Y])^2, 2, mean),model="nuisance",sim=m)
+	  ## Target fit
+	  dat.copy <- copy(train)
+	  dat.copy[, A:=0]
+	  fit0 <- predict(model, newx=as.matrix(dat.copy[, -1]))
+	  dat.copy[, A:=1]
+	  fit1 <- predict(model, newx=as.matrix(dat.copy[, -1]))
+	  est.target <- data.table(lambda=lambda,mse=(apply(fit1-fit0, 2, mean)-effect.size)^2,model="target",sim=m)
+	  return(rbind(est.nui, est.target))
+      }))
+      return(out[])
+  }
+
+  set.seed(341)
+  tt0 <- sim.est(M=200)
+  mse0 <- tt0[, .(mean=mean(mse), sd.mc=sd(mse), lwr.mc=quantile(mse, probs=.025), upr.mc=quantile(mse, probs=.975)), .(lambda, model)]
+  mse0.plot <- mse0[exp(-4) < lambda & lambda < exp(2.6)]
+  mse0.plot[, normalized.mean := (mean-min(mean))/(max(mean)-min(mean)), .(model)]
+#+END_SRC
+
+#+BEGIN_SRC R :results graphics file :exports results :session *R* :cache yes :file ./fig-nuisance-target-tuning.pdf :height 2.6 :width 5.5
+  library(latex2exp)
+  ggplot(mse0.plot, aes(x=log(lambda), y=normalized.mean, col=model)) + theme_classic() +
+    geom_line(size=1.2) + ylab("Standardized MSE") +
+    xlab(TeX("$\\log(\\lambda)$")) +
+    labs(color = "")+
+    scale_color_manual(labels = list(TeX("$\\nu$"), TeX("$\\Psi$")), values = c("darkblue", "red")) +
+    theme(axis.text.y=element_blank(), 
+	  axis.ticks.y=element_blank()) +
+    geom_point(data=mse0.plot[normalized.mean==0], size=3) 
+#+END_SRC
+
+#+RESULTS[(2022-04-19 13:14:43) 7cc23cf960686b01ec09034ca43691806dcab17c]:
+[[file:./fig-nuisance-target-tuning.pdf]]
+
+* References
+\small\bibliography{../latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Project in Biostatistics: Hyperparameter optimization
+#+Author: Anders Munch & Thomas Gerds
+#+Date: April 25, 2022
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{plain}
+# #+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{../latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ../latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
