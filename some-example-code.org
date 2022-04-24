@@ -1,0 +1,133 @@
+
+* TODO Tasks                                                       :noexport:
+
+** Overall 
+- [ ] Write Thomas about data documentation
+- [ ] Update slides with comment
+- [ ] Collect literature
+   
+** TODO R / data getting starting tutorial
+- [X] Get data
+- [X] Fit and evaluate some models
+  - Manually
+  - Illustrate random seed and differences between model fits (?)
+  - Using riskRegression
+- [ ] Super Learng
+- [ ] G-formula calculation
+- [ ] Setup simulation
+- [ ] Literature
+- [ ] Setup on git?
+
+* Setting :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports code  :session *R* :cache yes
+
+#+BEGIN_SRC R :results none
+  if(Sys.info()[["user"]] == "amnudn") source("./sandbox/get-data.R") ## Put in sandbox
+#+END_SRC
+
+
+* Setup some data
+Packages we use
+#+BEGIN_SRC R :results none
+  library(riskRegression)
+  library(gam)
+  library(data.table)
+  library(randomForestSRC)
+#+END_SRC
+
+Construct a small data sample to play with. The full data set should first be loaded as =pph=.
+
+#+BEGIN_SRC R
+  covariates_binary <- names(pph)[grepl("Prev", names(pph))][c(1,11:14)]
+  covariates_cont <- c("MAlder", "PrevYearOfDelivery")
+  covariates <- c(covariates_binary, covariates_cont)
+  outcome_var <- "PPHbin"
+
+  ## Get subsample to play with
+  set.seed(341)
+  toy_data <- pph[sample(1:.N, size = 7000), c(covariates, outcome_var), with = FALSE]
+  for (nn in c(covariates_binary,outcome_var)) set(toy_data, j = nn, value = factor(toy_data[[nn]]))
+#+END_SRC
+
+#+RESULTS[(2022-04-24 16:07:08) 12371191dca7a0e8ce2ad619542a58f9e57e57de]:
+
+Fit some models, e.g., using glm, splines, random forest, etc. Evaluate the performance using the
+Brier score.
+
+#+BEGIN_SRC R
+  ## Split data using tool from riskRegression package
+  splits <- getSplitMethod("cv5", N = toy_data[, .N], seed = 42)
+
+  ## Fit some models and get predictions on test set.
+  model_preds <- do.call(rbind, lapply(1:splits$k, function(fold.k){
+    train_data = toy_data[splits$index[,1] != fold.k]
+    test_data = toy_data[splits$index[,1] == fold.k]
+    form0 <- formula(paste(outcome_var, "~", paste(covariates_binary, collapse = "+")))
+    form <- update(form0, paste(".~.+", paste(covariates_cont, collapse = "+")))
+    model_fits <- list(glm = glm(form,data=train_data, family="binomial"),
+		       spline = gam(update(form0, paste(".~.+", paste("s(", paste0(covariates_cont, ", 3)"), collapse = "+"))), data=train_data,family="binomial"),
+		       rf_big = rfsrc(form,mtry = 3, nodesize = 10,data=train_data),
+		       rf_small = rfsrc(form,mtry = 7, nodesize = 1,data=train_data))
+    do.call(rbind, lapply(seq_along(model_fits), function(mm){
+      copy(test_data)[, ":="(model = names(model_fits)[mm], fold = fold.k, risk_pred = predictRisk(model_fits[[mm]], newdata = test_data))]
+    }))
+  }))
+
+  ## Calculate the Brier score
+  model_preds[, .(Brier_score = 100*mean((risk_pred - (get(outcome_var) == "Yes"))^2)), model]
+
+  ## ## Visualize predictions
+  ## model_preds[, boxplot(risk_pred ~ model)]
+  ## plot(model_preds[model == "rf_big", risk_pred], model_preds[model == "rf_small",risk_pred])
+#+END_SRC
+
+#+RESULTS[(2022-04-24 16:06:47) ee611f61c4542d1c42a0448fc7af7d03ded59181]:
+:       model Brier_score
+: 1:      glm    1.380225
+: 2:   spline    1.380888
+: 3:   rf_big    1.434867
+: 4: rf_small    1.547855
+
+Can also use the =score= function from the =riskRegression= package. Bootstraps the data instead and
+validates the model on the out-of-bag data. 
+
+#+BEGIN_SRC R :results none
+  form0 <- formula(paste(outcome_var, "~", paste(covariates_binary, collapse = "+")))
+  form <- update(form0, paste(".~.+", paste(covariates_cont, collapse = "+")))
+  model_fits <- list(glm = glm(form,data=toy_data, family="binomial"),
+		     spline = gam(update(form0, paste(".~.+", paste("s(", paste0(covariates_cont, ", 3)"), collapse = "+"))), data=toy_data,family="binomial"),
+		     rf_small = rfsrc(form,mtry = 3, nodesize = 10,data=toy_data),
+		     rf_big = rfsrc(form,mtry = 7, nodesize = 1,data=toy_data))
+  model_scores <- Score(model_fits,formula = formula(paste0(outcome_var, "~1")),data = toy_data,split.method = "bootcv",B = 10)
+#+END_SRC
+
+#+BEGIN_SRC R
+  model_scores$Brier$score
+#+END_SRC
+
+#+RESULTS[(2022-04-24 16:15:46) 795b308974f8327e2d715751c423752628746c61]:
+:         model      Brier          se      lower      upper
+: 1: Null model 0.01477126 0.001403630 0.01230302 0.01649884
+: 2:        glm 0.01486712 0.001324946 0.01251259 0.01646401
+: 3:     spline 0.01490361 0.001327056 0.01252680 0.01648826
+: 4:   rf_small 0.01575717 0.001349505 0.01335572 0.01736808
+: 5:     rf_big 0.01730264 0.001348039 0.01521622 0.01896994
+
+#+BEGIN_SRC R :results drawer
+  org(model_scores$Brier$score*100, digits=3)
+#+END_SRC
+
+#+RESULTS[(2022-04-24 16:15:04) 7d546a2635ff779461d66f6f7516567855a5becd]:
+:results:
+| model | Brier |    se | lower | upper |
+|-------+-------+-------+-------+-------|
+| NA    | 1.477 | 0.140 | 1.230 | 1.650 |
+| NA    | 1.487 | 0.132 | 1.251 | 1.646 |
+| NA    | 1.490 | 0.133 | 1.253 | 1.649 |
+| NA    | 1.576 | 0.135 | 1.336 | 1.737 |
+| NA    | 1.730 | 0.135 | 1.522 | 1.897 |
+
+Warning message:
+In Ops.factor(left, right) : ‘*’ not meaningful for factors
+:end:
