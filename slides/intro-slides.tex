@@ -1,4 +1,4 @@
-% Created 2022-04-19 Tue 14:00
+% Created 2022-04-24 Sun 23:04
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:org8237656}]{Outline of the setting}
+\begin{frame}[label={sec:orgfa277ec}]{Outline of the setting}
 Let $\mathcal{P}$ be a collection of probability measures over $\R^{d+2}$, so that
 $O \sim P \in \mathcal{P}$, with $O = (Y, A, X)$, $Y\in \R$, $A\in \R$, and $X \in \R^d$.
 
@@ -72,12 +72,17 @@ is either a \textbf{high-} or a \textbf{low-dimensional} space:
 is \(\nu \colon \mathcal{P} \rightarrow \mathcal{F}\), \[\nu(P) = f, \text{ for } f(x, a) = \E_P[Y
    \mid X=x, A=a]. \]
 \item Low-dimensional (causal) target parameter, for instance the average treatment effect: The
-parameter of interest is \(\Psi \colon \mathcal{P} \rightarrow \R\), \[\Psi(P) = \E_P{\left[ \E_P[Y
-   \mid X, A=1] - \E_P[Y \mid X, A=0] \right]}. \]
+parameter of interest is \(\Psi \colon \mathcal{P} \rightarrow \R\),
+\begin{align*}
+  \Psi(P)
+  & = \E_P{\left[ \E_P[Y \mid X, A=1] - \E_P[Y \mid X, A=0] \right]} \\
+  & = \int {\left\{ \nu(x, 1) - \nu(x, 0) \right\}} \diff P_X(x),
+    \quad \nu = \nu(P).
+\end{align*}
 \end{enumerate}
 \end{frame}
 
-\begin{frame}[label={sec:org345616e}]{Data}
+\begin{frame}[label={sec:org3ca5003}]{Data}
 You will work with a random subset of the data described in \cite{wikkelso2014prediction}. The
 dataset contains data from 48,272 Danish women who gave birth twice. The main outcome is a binary
 variable called PPH which indicates if the woman had a postpartum haemorrhage (heavy bleeding)
@@ -93,27 +98,30 @@ during the second delivery.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org9f77f7c}]{Hyperparameter and model selection/construction}
+\begin{frame}[label={sec:orgbdaffad}]{Hyperparameter and model selection/construction}
 Estimation of \(\nu\) is a well-studied problem. Many (machine) learning approaches depend on one or
-more hyperparameters that has to be tuned. We want to examine how to do this properly, and what the
-practical effects are of the different possible approaches.
+more hyperparameters that has to be chosen in some way. We want to examine how to do this properly,
+and what the practical effects are of the different possible approaches.
 
 \vfill
 
-\begin{block}{Examples of things to consider}
-\begin{itemize}
-\item How do we evaluate the performance of a candidate model?
-\item Do we select a single candidate model as our final model, or do we combine the candidate models
-into one? One approach is the Super Learner \citep{van2011targeted,HoffmanBlog}.
-\item What kind of theoretical guarantees do we get when using cross-validation to select/construct a model?
-\item How does the different approaches play out in practice?
-\end{itemize}
+\begin{block}{Example}
+One of the simplest examples of hyperparameter selection is ridge regression, which estimates \(\nu\)
+with
+\begin{equation*}
+  \hat{\nu}_{\lambda}(x) = x^{\T} \hat{\beta}, \quad
+  \hat{\beta} := \argmin_{\beta} \frac{1}{n} \sum_{i=1}^{n}L(y_i, x_i^{\T} \hat{\beta}) + \lambda
+  \Vert \beta \Vert^2.
+\end{equation*}
+
+We can also consider a collection of models with different strengths to construct more robust
+estimators (e.g., the Super Learner \cite{HoffmanBlog,van2011targeted}).
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org4f946cd}]{Target parameter and causal inference}
+\begin{frame}[label={sec:orgfa65db6}]{Target parameter and causal inference}
 \begin{block}{Target parameter}
-By explicitly defining a parameter of interest as an answer to a concrete scientific question, we
+By explicitly defining a parameter of interest as an answer to a concrete scientific question we
 ensure that we can draw relevant and meaningful conclusions from our statistical analysis.
 \end{block}
 
@@ -123,8 +131,8 @@ assumptions.
 \end{block}
 
 \begin{block}{Causal inference}
-One example is the average treatment effect, \[\Psi(P) = \E_P{[\nu(X, 1) -\nu(X, 0)]}, \quad
-\nu=\nu(P) \in \mathcal{F}. \]
+One example is the average treatment effect, \[\Psi(P) = \int {\left\{ \nu(x, 1) - \nu(x, 0)
+\right\}} \diff P_X(x), \quad \nu=\nu(P) \in \mathcal{F}. \]
 
 \begin{itemize}
 \item How do we formalize a causal question?
@@ -134,7 +142,7 @@ One example is the average treatment effect, \[\Psi(P) = \E_P{[\nu(X, 1) -\nu(X,
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org8f54092}]{Targeted inference and hyperparameter selection}
+\begin{frame}[label={sec:orge3ad38e}]{Targeted inference and hyperparameter selection}
 Finding a good estimator \(\hat\nu\) of \(\nu\) \alert{does \emph{not} necessarily provide a good plug-in estimator
 of \(\Psi\)}! \(\rightarrow\) targeted learning and debiased ML
 \citep{van2006targeted,van2011targeted,chernozhukov2018double,kennedy2022semiparametric}.
@@ -157,7 +165,7 @@ Let \(\hat\Psi_{\lambda}\) denote the plug-in estimator of \(\Psi\) based on \(\
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:orgd13ceb5}]{References}
+\begin{frame}[label={sec:org9120da7}]{References}
 \small\bibliography{../latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

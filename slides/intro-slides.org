@@ -1,8 +1,7 @@
 * Notes/tasks                                                      :noexport:
-- [ ] Make simulation plots
+- [X] Make simulation plots
 - [ ] Mathematical formulation of the problem -- where to fit that in?
-- [ ] Access to data? Talk to Thomas about GDPR etc...???
-- The impact of the hyperparameter / choice of model
+- [X] The impact of the hyperparameter / choice of model
 
 * Outline of the setting
 #+begin_export latex
@@ -21,8 +20,15 @@ is either a \textbf{high-} or a \textbf{low-dimensional} space:
    is $\nu \colon \mathcal{P} \rightarrow \mathcal{F}$, \[\nu(P) = f, \text{ for } f(x, a) = \E_P[Y
    \mid X=x, A=a]. \]
 2. Low-dimensional (causal) target parameter, for instance the average treatment effect: The
-   parameter of interest is $\Psi \colon \mathcal{P} \rightarrow \R$, \[\Psi(P) = \E_P{\left[ \E_P[Y
-   \mid X, A=1] - \E_P[Y \mid X, A=0] \right]}. \]
+   parameter of interest is $\Psi \colon \mathcal{P} \rightarrow \R$,
+   #+begin_export latex
+   \begin{align*}
+     \Psi(P)
+     & = \E_P{\left[ \E_P[Y \mid X, A=1] - \E_P[Y \mid X, A=0] \right]} \\
+     & = \int {\left\{ \nu(x, 1) - \nu(x, 0) \right\}} \diff P_X(x),
+       \quad \nu = \nu(P).
+   \end{align*}
+   #+end_export
 
 * Data
 You will work with a random subset of the data described in \cite{wikkelso2014prediction}. The
@@ -38,12 +44,27 @@ during the second delivery.
 
 * Hyperparameter and model selection/construction
 Estimation of $\nu$ is a well-studied problem. Many (machine) learning approaches depend on one or
-more hyperparameters that has to be tuned. We want to examine how to do this properly, and what the
-practical effects are of the different possible approaches.
+more hyperparameters that has to be chosen in some way. We want to examine how to do this properly,
+and what the practical effects are of the different possible approaches.
 
 \vfill
 
-** Examples of things to consider
+** Example
+One of the simplest examples of hyperparameter selection is ridge regression, which estimates $\nu$
+with
+#+begin_export latex
+\begin{equation*}
+  \hat{\nu}_{\lambda}(x) = x^{\T} \hat{\beta}, \quad
+  \hat{\beta} := \argmin_{\beta} \frac{1}{n} \sum_{i=1}^{n}L(y_i, x_i^{\T} \hat{\beta}) + \lambda
+  \Vert \beta \Vert^2.
+\end{equation*}
+#+end_export
+
+We can also consider a collection of models with different strengths to construct more robust
+estimators (e.g., the Super Learner \cite{HoffmanBlog,van2011targeted}).
+
+
+** Examples of things to consider :noexport:
 
 - How do we evaluate the performance of a candidate model?
 - Do we select a single candidate model as our final model, or do we combine the candidate models
@@ -53,7 +74,7 @@ practical effects are of the different possible approaches.
 
 * Target parameter and causal inference
 ** Target parameter
-By explicitly defining a parameter of interest as an answer to a concrete scientific question, we
+By explicitly defining a parameter of interest as an answer to a concrete scientific question we
 ensure that we can draw relevant and meaningful conclusions from our statistical analysis.
 
 ** High-dimensional nuisance parameter
@@ -61,8 +82,8 @@ By allowing high-dimensional nuisance parameters we avoid having to make unreali
 assumptions.
 
 ** Causal inference
-One example is the average treatment effect, \[\Psi(P) = \E_P{[\nu(X, 1) -\nu(X, 0)]}, \quad
-\nu=\nu(P) \in \mathcal{F}. \]
+One example is the average treatment effect, \[\Psi(P) = \int {\left\{ \nu(x, 1) - \nu(x, 0)
+\right\}} \diff P_X(x), \quad \nu=\nu(P) \in \mathcal{F}. \]
 
 - How do we formalize a causal question?
 - Which assumptions are needed for the above parameter to have a causal interpretation?
