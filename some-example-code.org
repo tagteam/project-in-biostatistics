@@ -1,4 +1,32 @@
 #+PROPERTY: header-args:R  :results none  :exports code  :session *R* :cache yes
+#+OPTIONS:   num:t toc:nil ':t ^:t
+#+LaTeX_CLASS: article
+#+LaTeX_CLASS_OPTIONS: [a4paper,danish]
+#+LATEX_HEADER:\usepackage[margin=4cm]{geometry}
+#+LATEX_HEADER:\usepackage{dsfont, pgfpages, tikz,amssymb, amsmath,xcolor, caption, subcaption}
+# Steeling style from beamer
+#+LaTeX_HEADER: \lstset{
+#+LaTeX_HEADER: keywordstyle=\color{blue},
+#+LaTeX_HEADER: commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+#+LaTeX_HEADER: literate={~}{$\sim$}{1},
+#+LaTeX_HEADER: basicstyle=\ttfamily\small,
+#+LaTeX_HEADER: columns=fullflexible,
+#+LaTeX_HEADER: breaklines=true,
+#+LaTeX_HEADER: breakatwhitespace=false,
+#+LaTeX_HEADER: numbers=left,
+#+LaTeX_HEADER: numberstyle=\ttfamily\tiny\color{gray},
+#+LaTeX_HEADER: stepnumber=1,
+#+LaTeX_HEADER: numbersep=10pt,
+#+LaTeX_HEADER: backgroundcolor=\color{white},
+#+LaTeX_HEADER: tabsize=4,
+#+LaTeX_HEADER: keepspaces=true,
+#+LaTeX_HEADER: showspaces=false,
+#+LaTeX_HEADER: showstringspaces=false,
+#+LaTeX_HEADER: xleftmargin=.23in,
+#+LaTeX_HEADER: frame=single,
+#+LaTeX_HEADER: basewidth={0.5em,0.4em},
+#+LaTeX_HEADER: }
+
 
 * Setup some data
 Packages we use
@@ -7,6 +35,7 @@ Packages we use
   library(gam)
   library(data.table)
   library(randomForestSRC)
+  library(nnls)
 #+END_SRC
 
 Construct a small data sample to play with. The full data set should first be loaded as =pph=.
@@ -28,11 +57,12 @@ Construct a small data sample to play with. The full data set should first be lo
   toy_data[, subject_ID:=1:.N]
 #+END_SRC
 
-* Fit and some model
+* Fit some models
 
 ** Manual cross validation
 Fit some models, e.g., using glm, splines, random forest, etc. Evaluate the performance using the
-Brier score.
+Brier score, i.e., the mean squared error between the predicted risk from the model and the observed
+outcome.
 
 #+BEGIN_SRC R
   ## Split data using tool from riskRegression package
@@ -71,6 +101,8 @@ validates the model on the out-of-bag data.
 #+END_SRC
 
 * Average treatment effect
+With an estimate of the outcome model (the conditional expectation of the outcome given covariates
+and treatment) we can obtain an estimate of the average treatment effect.
 
 #+BEGIN_SRC R
   dat0 = copy(toy_data)[, intendedCS := "No"]
@@ -104,7 +136,6 @@ shown below.
 		  family = "binomial")
 
   ## Combine models by solving a non-negative least squares problem and normalize the weights
-  library(nnls)
   meta_nnls <- nnls(as.matrix(level1_data[, names(model_fits), with = FALSE]), 1*(level1_data[[outcome_var]] == "Yes"))
   nnls_weights <- coef(meta_nnls)/sum(coef(meta_nnls))
 #+END_SRC
@@ -124,7 +155,7 @@ learners to these prediction to obtain the final predictions.
 #+END_SRC
 
 * Setup simulation
-It can be very useful to simulate data, as we then know the true value of our parameter of interest,
+It can be very useful to simulate data as we then know the true value of our parameter of interest,
 which makes it easy to evaluate the performance of the estimators we consider. The are many
 different ways to do this. To construct data that "looks like" the real data (at least
 superficially) we could do something like the following.
@@ -158,7 +189,7 @@ superficially) we could do something like the following.
 - Overview of targeted inference, causality, and efficient estimation: Kennedy (2016)
   "Semiparametric Theory and Empirical Processes in Causal Inference",
   (https://arxiv.org/abs/1510.04740)
-- Super Learner: Hoffman's blog with tutorial (https://www.khstats.com/blog/sl/superlearning/) or
+- Super Learner: Hoffman's blog with tutorial (https://www.khstats.com/blog/sl/superlearning/) and
   chapter 3 in van der Laan & Rose (2011) "Targeted Learning".
 - More details on Targeted Learning and Debiased ML: Kennedy (2022) "Semiparametric Doubly Robust
   Targeted Double Machine Learning: A Review" (https://arxiv.org/abs/2203.06469) and the
