@@ -1,6 +1,6 @@
 * Notes/tasks                                                      :noexport:
 - [X] Make simulation plots
-- [ ] Mathematical formulation of the problem -- where to fit that in?
+- [X] Mathematical formulation of the problem -- where to fit that in?
 - [X] The impact of the hyperparameter / choice of model
 
 * Outline of the setting
