@@ -7,12 +7,12 @@ Packages we use
   library(gam)
   library(data.table)
   library(randomForestSRC)
-  ## if(Sys.info()[["user"]] == "amnudn") source("./sandbox/get-data.R") ## Replace to load data
 #+END_SRC
 
 Construct a small data sample to play with. The full data set should first be loaded as =pph=.
 
 #+BEGIN_SRC R
+  ## if(Sys.info()[["user"]] == "amnudn") source("./sandbox/get-data.R") ## Replace to load data
   pph[, intendedCS:=1*(SecondBirthIntended=="PlannedCS")]
   pph[, intendedCS:=factor(intendedCS,levels=c("0","1"),labels=c("No","Yes"))]
   treatment_var <- "intendedCS"
@@ -108,6 +108,9 @@ shown below.
   meta_nnls <- nnls(as.matrix(level1_data[, names(model_fits), with = FALSE]), 1*(level1_data[[outcome_var]] == "Yes"))
   nnls_weights <- coef(meta_nnls)/sum(coef(meta_nnls))
 #+END_SRC
+
+Finally, we apply all of the prediction models to all of the data, and then apply of the fitted meta
+learners to these prediction to obtain the final predictions.
 
 #+BEGIN_SRC R
   ## Fit the models on *all* of the data
