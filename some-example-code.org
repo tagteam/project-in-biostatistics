@@ -1,5 +1,5 @@
 #+PROPERTY: header-args:R  :results none  :exports code  :session *R* :cache yes
-#+OPTIONS:   num:t toc:nil ':t ^:t
+#+OPTIONS:  toc:nil ':t ^:t
 #+LaTeX_CLASS: article
 #+LaTeX_CLASS_OPTIONS: [a4paper,danish]
 #+LATEX_HEADER:\usepackage[margin=4cm]{geometry}
@@ -186,15 +186,14 @@ superficially) we could do something like the following.
 #+END_SRC
 
 * Literature
-- Overview of targeted inference, causality, and efficient estimation: Kennedy (2016)
-  "Semiparametric Theory and Empirical Processes in Causal Inference",
-  (https://arxiv.org/abs/1510.04740)
-- Super Learner: Hoffman's blog with tutorial (https://www.khstats.com/blog/sl/superlearning/) and
-  chapter 3 in van der Laan & Rose (2011) "Targeted Learning".
-- More details on Targeted Learning and Debiased ML: Kennedy (2022) "Semiparametric Doubly Robust
-  Targeted Double Machine Learning: A Review" (https://arxiv.org/abs/2203.06469) and the
-  introduction of Chernozhukov et al. (2018) "Double/debiased machine learning for treatment and
-  structural parameters" (https://academic.oup.com/ectj/article/21/1/C1/5056401)
-- More about causality: Hernán and Robins (2020) "What If"
-  (https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
+- Overview of targeted inference, causality, and efficient estimation: [[https://arxiv.org/abs/1510.04740][Kennedy (2016)
+  "Semiparametric Theory and Empirical Processes in Causal Inference"]]
+- Some information about the data: Wikkelsø et al. 2014 ([[https://www.tandfonline.com/doi/full/10.3109/14767058.2013.872095][The Journal of Maternal-Fetal & Neonatal
+  Medicine, 27(16):1661-1667, 2014]])
+- Super Learner: [[https://www.khstats.com/blog/sl/superlearning/][Hoffman's blog with tutorial]] and Chapter 3 in van der Laan & Rose (2011) "Targeted
+  Learning".
+- More details on Targeted Learning and Debiased ML: [[https://arxiv.org/abs/2203.06469][Kennedy (2022) "Semiparametric Doubly Robust
+  Targeted Double Machine Learning: A Review"]] and the introduction of [[https://academic.oup.com/ectj/article/21/1/C1/5056401][Chernozhukov et al. (2018)
+  "Double/debiased machine learning for treatment and structural parameters"]]
+- More about causality: [[https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/][Hernán and Robins (2020) "What If"]]
 - Risk prediction and cross validation: Gerds & Kattan (2021) "Medical Risk Prediction Models"
