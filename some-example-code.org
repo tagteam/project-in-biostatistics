@@ -88,7 +88,7 @@ outcome.
 #+END_SRC
 
 ** Using the =riskRegression= package
-Can also use the =score= function from the =riskRegression= package. Bootstraps the data instead and
+Can also use the =Score= function from the =riskRegression= package. Bootstraps the data instead and
 validates the model on the out-of-bag data. 
 
 #+BEGIN_SRC R 
@@ -153,6 +153,8 @@ learners to these prediction to obtain the final predictions.
   ## Combine the model predictions using the weights nnls
   full_pred[, meta_nnls_pred := as.matrix(.SD) %*% nnls_weights, .SDcols = names(model_fits)]
 #+END_SRC
+
+Alternatively we can use the =SuperLearner= package, see for instance this tutorial: [[https://www.khstats.com/blog/sl/superlearning/][Hoffman's blog]].
 
 * Setup simulation
 It can be very useful to simulate data as we then know the true value of our parameter of interest,
