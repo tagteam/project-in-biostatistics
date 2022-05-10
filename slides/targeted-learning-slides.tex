@@ -1,4 +1,4 @@
-% Created 2022-05-10 Tue 10:37
+% Created 2022-05-10 Tue 13:31
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -57,7 +57,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:orgc6cac3e}]{Scientific parameter of interest}
+\begin{frame}[label={sec:org060811e}]{Scientific parameter of interest}
 \small To make sure that our statistical analysis is of any interest, we should make sure that we
 estimate a meaningful and clearly interpretable parameter that answers a specific scientific
 question.
@@ -78,7 +78,7 @@ assumption is that there is no unmeasured confounding.
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgb7fb5b7}]{Nuisance and target parameters}
+\begin{frame}[label={sec:org25aa18d}]{Nuisance and target parameters}
 To obtain an estimator of \(\Psi(P)\) we can exploit that this parameter is identified through the
 parameters \(\nu\) and \(\mu\). With estimator \(\hat\nu_n\) and \(\hat\mu_n\) we obtain the plug-in
 estimator
@@ -98,7 +98,7 @@ The parameters \(\nu\) and \(\mu\) are (in this case) not something we are inter
 reason to estimating them is to obtain an estimator of \(\Psi\). Hence \(\nu\) and \(\mu\) are referred to
 as \emph{nuisance parameters} while \(\Psi\) is the \emph{target parameter}.
 \end{frame}
-\begin{frame}[label={sec:org0d29bf7},fragile]{Example with \texttt{R}-code (G-formula)}
+\begin{frame}[label={sec:orga0b5d26},fragile]{Example with \texttt{R}-code (G-formula)}
  \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 set.seed(20)
@@ -123,7 +123,7 @@ mean(fit1 - fit0)
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[label={sec:org00ae6d9}]{Low and high-dimensional nuisance parameter}
+\begin{frame}[label={sec:orgbef2d0f}]{Low and high-dimensional nuisance parameter}
 \begin{block}{Low-dimensional nuisance parameters}
 In the case that we assume the nuisance parameters to be low-dimensional, for instance
 $\mathcal{P} = \{P_{\theta} \; : \; \theta \in \R^3\}$, it would often be straightforward to analyze
@@ -145,7 +145,7 @@ complicated:
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgc58669d}]{The challenge with high-dimensional nuisance parameters}
+\begin{frame}[label={sec:org9adc7de}]{The challenge with high-dimensional nuisance parameters}
 The nuisance estimators is optimized for minimizing the MSE for the \emph{nuisance} parameter and not for
 the \emph{target} parameter.
 
@@ -154,7 +154,7 @@ the \emph{target} parameter.
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org85d74e0}]{Asymptotic linear estimators}
+\begin{frame}[label={sec:orgd530598}]{Asymptotic linear estimators}
 \small
 For a function $f \colon \mathcal{O} \rightarrow \R$ and a measure $P$ on $\mathcal{O}$ we use the notation $P[f]$ to mean
 \begin{equation*}
@@ -185,15 +185,15 @@ The influence function of the RAL estimator with the smallest asymptotic varianc
 \end{definition}
 \end{frame}
 
-\begin{frame}[label={sec:org7005a15}]{The asymptotic behavior of \(\hat\Psi_n^0\)}
+\begin{frame}[label={sec:org80db992}]{The asymptotic behavior of \(\hat\Psi_n^0\)}
 \small If we make no assumptions\footnote{For estimation to be possible and positivity to hold we end up making \emph{some} assumptions.} about \(\mathcal{P}\) then all RAL estimators of a parameter
 \(\Psi\) have the same influence function \citep{kennedy2016semiparametric}. Let \(\ic(\blank;P)\) denote this
-unique influence function, and let \(\hat P_n\) denote an estimator of \(P\). Then we may write
+unique influence function, and let \(\hat P_n\) denote an estimator of \(P\). Then
 \begin{align*}
   & \sqrt{n}(\hat{\Psi}_n^0 - \Psi)
   \\
   & = \sqrt{n}
-    \Psi(\hat P_n) - \Psi(P)
+    (\Psi(\hat P_n) - \Psi(P))
   \\
   &  = \sqrt{n}
     \left(
@@ -233,10 +233,10 @@ where we define
 %   + P[\ic(\blank; \hat{\nu}_n, \hat{\pi}_n)].
 % \end{equation*}
 Here \(\Psi\) and \(\ic\) might depend on different components of the measure \(P\), for instance \(\Psi\)
-might depend on the nuisance parameters \(\nu\) and \(\mu\) while \(\ic\) depend on \(\mu\) and \(\pi\).
+might depend on the nuisance parameters \(\nu\) and \(\mu\) while \(\ic\) depend on \(\nu\) and \(\pi\).
 \end{frame}
 
-\begin{frame}[label={sec:org6a22f23}]{The main variance term and the remainder}
+\begin{frame}[label={sec:orgd9e7a95}]{The main variance term and the remainder}
 \small
 \begin{block}{\((\empmeas-P)[\ic(\blank; \hat{P}_n)]\)}
 The first term can be controlled using \emph{empirical process theory} or \emph{sample splitting} (see
@@ -246,14 +246,15 @@ The first term can be controlled using \emph{empirical process theory} or \emph{
 
 \begin{block}{\(\mathrm{Rem}(P, \hat{P}_n)\)}
 The influence function can also be understood as a \emph{functional derivative} of the parameter
-\(\Psi\colon \mathcal{P} \rightarrow \R\). Thus \[\Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)]\] can be
-understood as a first order functional Taylor approximation to \(\Psi(P)\). If \(\| \hat{P}_n -P \| =
-\smallO_P(n^{-1/4})\) we might therefore expect that \[ \mathrm{Rem}(P, \hat{P}_n) = \Psi(\hat P_n) +
-P[\ic(\blank; \hat{P}_n)] - \Psi(P) = \smallO_P((n^{-1/4})^2) = \smallO_P(n^{-1/2}). \]
+\(\Psi\colon \mathcal{P} \rightarrow \R\). Thus \[\Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)]\] is a
+first order functional Taylor approximation of \(\Psi(P)\). We might therefore expect that \[
+\mathrm{Rem}(P, \hat{P}_n) = \Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)] - \Psi(P) = \mathcal{O}_P(\|
+\hat{P}_n -P \|^2), \] so if \(\| \hat{P}_n -P \| = \smallO_P(n^{-1/4})\) we have \(\mathrm{Rem}(P,
+\hat{P}_n) = \smallO_P(n^{-1/2})\).
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgc7cb200}]{One-step / debiased estimator}
+\begin{frame}[label={sec:org5b883a5}]{One-step / debiased estimator}
 \small
 Combining these steps gives that
 \begin{align*}
@@ -281,7 +282,7 @@ the estimator \[\hat\Psi_n:= \hat\Psi_n^0 + \empmeas[\ic(\blank; \hat{P}_n)],\] 
 RAL with influence function \(\ic\).
 \end{frame}
 
-\begin{frame}[label={sec:org1858cfc}]{The canonical gradient for the ATE}
+\begin{frame}[label={sec:org58b561d}]{The canonical gradient for the ATE}
 \small For the ATE problem the canonical gradient is
 \begin{align*}
   \ic(O; P)
@@ -318,7 +319,7 @@ With estimators of \(\nu\) and \(\pi\) the one-step estimator becomes
 \end{align*}
 \end{frame}
 
-\begin{frame}[label={sec:org1d24ed1},fragile]{Example with \texttt{R} code (canonical gradient)}
+\begin{frame}[label={sec:org42ca5f8},fragile]{Example with \texttt{R} code (canonical gradient)}
  We use the same data and fitted model \texttt{model} and predictions \texttt{fit0} and \texttt{fit1} from earlier. To
 calculate the debiased estimator we also need to estimate the propensity model.
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -338,7 +339,7 @@ mean(fit1 - fit0) +
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[label={sec:org24421fb}]{Illustration of the effect of debiasing}
+\begin{frame}[label={sec:orgd6e3e0d}]{Illustration of the effect of debiasing}
 For our very simple data example the debiasing step is quite effective. 
 
 \begin{center}
@@ -346,7 +347,7 @@ For our very simple data example the debiasing step is quite effective.
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org306328f}]{For the rest of the project}
+\begin{frame}[label={sec:orgd4dd190}]{For the rest of the project}
 We now have a zoo of estimators for both the prediction problem and for estimating the ATE:
 \begin{enumerate}
 \item For the prediction problem:
@@ -370,7 +371,7 @@ estimator of the ATE
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org896dddd}]{References}
+\begin{frame}[label={sec:orgc5e4b54}]{References}
 \small \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

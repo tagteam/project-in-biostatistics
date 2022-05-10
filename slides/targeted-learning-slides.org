@@ -220,13 +220,13 @@ The influence function of the RAL estimator with the smallest asymptotic varianc
 * The asymptotic behavior of $\hat\Psi_n^0$
 \small If we make no assumptions[fn:1] about $\mathcal{P}$ then all RAL estimators of a parameter
 $\Psi$ have the same influence function \citep{kennedy2016semiparametric}. Let $\ic(\blank;P)$ denote this
-unique influence function, and let $\hat P_n$ denote an estimator of $P$. Then we may write
+unique influence function, and let $\hat P_n$ denote an estimator of $P$. Then
 #+begin_export latex
 \begin{align*}
   & \sqrt{n}(\hat{\Psi}_n^0 - \Psi)
   \\
   & = \sqrt{n}
-    \Psi(\hat P_n) - \Psi(P)
+    (\Psi(\hat P_n) - \Psi(P))
   \\
   &  = \sqrt{n}
     \left(
@@ -267,7 +267,7 @@ where we define
 % \end{equation*}
 #+end_export
 Here $\Psi$ and $\ic$ might depend on different components of the measure $P$, for instance $\Psi$
-might depend on the nuisance parameters $\nu$ and $\mu$ while $\ic$ depend on $\mu$ and $\pi$.
+might depend on the nuisance parameters $\nu$ and $\mu$ while $\ic$ depend on $\nu$ and $\pi$.
 
 [fn:1] For estimation to be possible and positivity to hold we end up making /some/ assumptions.
 
@@ -280,10 +280,11 @@ The first term can be controlled using /empirical process theory/ or /sample spl
 
 ** $\mathrm{Rem}(P, \hat{P}_n)$
 The influence function can also be understood as a /functional derivative/ of the parameter
-$\Psi\colon \mathcal{P} \rightarrow \R$. Thus \[\Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)]\] can be
-understood as a first order functional Taylor approximation to $\Psi(P)$. If $\| \hat{P}_n -P \| =
-\smallO_P(n^{-1/4})$ we might therefore expect that \[ \mathrm{Rem}(P, \hat{P}_n) = \Psi(\hat P_n) +
-P[\ic(\blank; \hat{P}_n)] - \Psi(P) = \smallO_P((n^{-1/4})^2) = \smallO_P(n^{-1/2}). \]
+$\Psi\colon \mathcal{P} \rightarrow \R$. Thus \[\Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)]\] is a
+first order functional Taylor approximation of $\Psi(P)$. We might therefore expect that \[
+\mathrm{Rem}(P, \hat{P}_n) = \Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)] - \Psi(P) = \mathcal{O}_P(\|
+\hat{P}_n -P \|^2), \] so if $\| \hat{P}_n -P \| = \smallO_P(n^{-1/4})$ we have $\mathrm{Rem}(P,
+\hat{P}_n) = \smallO_P(n^{-1/2})$.
 
 * One-step / debiased estimator
 \small
