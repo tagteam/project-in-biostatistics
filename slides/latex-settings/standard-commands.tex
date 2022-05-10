@@ -39,7 +39,8 @@
 % \newcommand{\measure}[1]{\textnormal{\textbf{{#1}}}} % measure
 \newcommand{\m}[1]{\measure{#1}} % measure shortcut
 \newcommand{\eqd}{\stackrel{d}{=}} % equality in distribution
-\newcommand{\arrowP}{\xrightarrow{\; \m{P} \;}} % convergence in probability
+\newcommand{\arrow}[1]{{\ensuremath \xrightarrow{\; {#1} \;}}} % convergence arrow
+\newcommand{\arrowP}{\arrow{P}} % convergence in probability
 \newcommand{\leb}{\lambda} % the Lebesgue measure
 \newcommand{\T}{\top} % transpose
 

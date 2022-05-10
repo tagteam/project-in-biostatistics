@@ -1,0 +1,445 @@
+* Setup R and simulate data                                        :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+
+#+BEGIN_SRC R
+  library(here)
+  library(glmnet)
+  library(data.table)
+  library(ggplot2)
+  library(parallel)
+  setwd(here("slides")) ## For the figures
+
+  effect.size <- 0.2
+  sim.dat <- function(n=1000, p=10){
+    X0 <- matrix(rnorm(n*p), nrow=n)
+    A <- 1*(runif(n) < .5)
+    Y <- A*effect.size + rnorm(n)
+    return(data.table(Y, A, X0))
+  }
+
+  sim_ate_gform <- function(M, lambda=exp(seq(5, -10, length.out=200)), alpha=0, mc.cores = max(1,detectCores()-1), ...){
+    out = do.call(rbind, mclapply(1:M, mc.cores = mc.cores, FUN = function(m){
+      train = sim.dat()
+      model = glmnet(train[, -1], train[,Y], alpha=alpha, lambda=lambda, ...)
+      dat.copy = copy(train)
+      dat.copy[, A:=0]
+      fit0 = predict(model, newx=as.matrix(dat.copy[, -1]))
+      dat.copy[, A:=1]
+      fit1 = predict(model, newx=as.matrix(dat.copy[, -1]))
+      ## Get mse for the nuisance component
+      test <- sim.dat(n=10000)
+      fit_test <- predict(model, newx=as.matrix(test[, -1]))
+      est_out = data.table(model = "gform",
+			   lambda_outcome = lambda,
+			   lambda_prop = as.numeric(NA),
+			   est = apply(fit1-fit0, 2, mean),
+			   nuisance_mse=apply((fit_test - test[, Y])^2, 2, mean),
+			   sim = m)
+      return(est_out)
+    }))
+    return(out[])
+  }
+  sim_ate_cv <- function(M, alpha=0, mc.cores = max(1,detectCores()-1), ...){
+    out = do.call(rbind, mclapply(1:M, mc.cores = mc.cores, FUN = function(m){
+      train = sim.dat()
+      model_outcome = cv.glmnet(as.matrix(train[, -1]), train[,Y], alpha=alpha,...)
+      model_prop = cv.glmnet(as.matrix(train[, -(1:2)]), train[,A], alpha=alpha, family = "binomial", ...)
+      dat.copy = copy(train)
+      dat.copy[, A:=0]
+      fit_outcome0 = predict(model_outcome, newx=as.matrix(dat.copy[, -1]), s = "lambda.min")
+      dat.copy[, A:=1]
+      fit_outcome1 = predict(model_outcome, newx=as.matrix(dat.copy[, -1]), s = "lambda.min")
+      fit_prop = predict(model_prop, newx=as.matrix(train[, -(1:2)]), s = "lambda.min", type = "response")
+      est.target = data.table(model = c("G-formula", "Debiased"),
+			      lambda_outcome=model_outcome[["lambda.min"]],
+			      lambda_prop=c(NA, model_prop[["lambda.min"]]),
+			      est = c(mean(fit_outcome1)-mean(fit_outcome0),
+				      mean(fit_outcome1)-mean(fit_outcome0) +
+				      mean(train[, A]/fit_prop*(train[, Y] - fit_outcome1) -
+					   (1-train[, A])/(1-fit_prop)*(train[, Y] - fit_outcome0))),
+			      sim=m)
+      return(est.target)
+    }))
+    return(out[])
+  }
+
+  set.seed(341)
+  ate_sim <- sim_ate_gform(M=200, lambda = exp(seq(2, -5, length.out=20)))
+  ate_sim_cv <- sim_ate_cv(M=200)
+#+END_SRC
+
+#+RESULTS[(2022-05-09 13:35:10) c6f139f7bb27326c7565ac5003bcbf4baa589749]:
+
+* Scientific parameter of interest
+\small To make sure that our statistical analysis is of any interest, we should make sure that we
+estimate a meaningful and clearly interpretable parameter that answers a specific scientific
+question.
+** The average treatment effect (ATE)                        :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+
+   #+begin_export latex
+   Let $\mathcal{P}$ be a collection of probability measures over $\R^{d+2}$, so that
+   $O \sim P \in \mathcal{P}$, with $O = (Y, A, X)$, $Y\in \R$, $A\in \{0,1\}$, and $X \in
+   \R^d$. Define
+   \begin{align*}
+     \Psi(P)
+     & = \E_P{\left[ \E_P[Y \mid X, A=1] - \E_P[Y \mid X, A=0] \right]} \\
+     & = \int {\left\{ \nu_P(x, 1) - \nu_P(x, 0) \right\}} \mu_P(\diff x),
+   \end{align*}
+   where $\nu_P$ denotes the conditional expectation of $Y$ given $X$ and $A$, and $\mu_P$ denotes the
+   marginal distribution of $X$. 
+   #+end_export
+   Under suitable structural assumptions $\Psi(P)$ can be given a causal interpretation, see
+   \citep{kennedy2016semiparametric,hernanRobinsWhatIf} for more details. In particular, one
+   assumption is that there is no unmeasured confounding.
+
+* Nuisance and target parameters
+To obtain an estimator of $\Psi(P)$ we can exploit that this parameter is identified through the
+parameters $\nu$ and $\mu$. With estimator $\hat\nu_n$ and $\hat\mu_n$ we obtain the plug-in
+estimator
+#+begin_export latex
+\begin{equation*}
+  \hat{\Psi}_n^0 = \int {\left\{ \hat{\nu}_n(x, 1) - \hat{\nu}_n(x, 0) \right\}} \hat{\mu}_n(\diff x).
+\end{equation*}
+When we use the empirical measure
+\begin{equation*}
+  \empmeas := \frac{1}{n}\sum_{i=1}^{n}\delta_{O_i},
+\end{equation*}
+to estimate $\mu$, the estimator $\hat{\Psi}_n$ becomes simply
+\begin{equation*}
+  \hat{\Psi}_n^0 = \frac{1}{n} \sum_{i=1}^{n} {\left\{ \hat{\nu}_n(X_i, 1) - \hat{\nu}_n(X_i, 0) \right\}}.
+\end{equation*}
+#+end_export
+
+The parameters $\nu$ and $\mu$ are (in this case) not something we are interested in. The only
+reason to estimating them is to obtain an estimator of $\Psi$. Hence $\nu$ and $\mu$ are referred to
+as /nuisance parameters/ while $\Psi$ is the /target parameter/.
+* Example with =R=-code (G-formula)
+
+#+BEGIN_SRC R :exports both
+  set.seed(20)
+  sim.dat <- function(n=1000, p=10){
+    X0 = matrix(rnorm(n*p), nrow=n)
+    A = 1*(runif(n) < .5)
+    Y = A*0.2 + rnorm(n)
+    return(data.table(Y, A, X0))
+  }
+  dat = sim.dat()
+  model = cv.glmnet(as.matrix(dat[, -1]), dat[,Y], alpha=0)
+  dat_c = copy(dat)
+  dat_c[, A:=0]
+  fit0 = predict(model, newx=as.matrix(dat_c[, -1]), s = "lambda.min")
+  dat_c[, A:=1]
+  fit1 = predict(model, newx=as.matrix(dat_c[, -1]), s = "lambda.min")
+  mean(fit1 - fit0)
+#+END_SRC
+
+#+RESULTS[(2022-05-09 23:17:36) f7e81efe3005c0dfc7bc836558ee27ad6968efc9]:
+: [1] 0.06748045
+
+* Low and high-dimensional nuisance parameter
+** Low-dimensional nuisance parameters
+#+begin_export latex
+In the case that we assume the nuisance parameters to be low-dimensional, for instance
+$\mathcal{P} = \{P_{\theta} \; : \; \theta \in \R^3\}$, it would often be straightforward to analyze
+the asymptotic behavior of $\Psi(P_{\hat{\theta}_n})$ if we know the asymptotic behaviour of
+$\hat{\theta}_n$. \dots \textbf{How?}\pause
+#+end_export
+
+** High-dimensional nuisance parameters
+
+When the nuisance parameter $\hat\theta_n$ is high-/infinite-dimensional, things become more
+complicated:
+1. Often we do not know the asymptotic distribution of $\hat\theta_n$.
+2. Even if we did, this would not help us to a good estimator of $\Psi(P_{\hat{\theta}_n})$.
+
+\vfill
+
+\dots \textbf{Why then bother with high-dimensional nuisance parameters?}
+
+* The challenge with high-dimensional nuisance parameters
+The nuisance estimators is optimized for minimizing the MSE for the /nuisance/ parameter and not for
+the /target/ parameter.
+
+#+BEGIN_SRC R :results graphics file :exports results :file fig-target-hyperpar-effect.pdf :width 7 :height 4
+  library(latex2exp)
+  ggplot(ate_sim, aes(y = est, x = log(lambda_outcome), group = lambda_outcome)) + theme_classic() +
+    geom_hline(yintercept = effect.size, size = 2, col = "gray") + 
+    geom_boxplot()  +
+    geom_vline(xintercept = log(ate_sim[, .SD[which.min(nuisance_mse)], sim][, quantile(lambda_outcome, probs = c(.025, .975))]),
+	       col = "blue", alpha = .3, linetype = 2,
+	       size = 1.5) + 
+    geom_vline(xintercept = log(ate_sim[, .SD[which.min(nuisance_mse)], sim][, median(lambda_outcome)]),
+	       col = "blue", alpha = .3,
+	       size = 3)  +
+    ylab("Estimate") + xlab(TeX("$\\log(\\lambda)$"))
+#+END_SRC
+
+#+RESULTS[(2022-05-09 13:48:01) 34e07e9bdf89edaad4067fefe2808e956d980380]:
+[[file:fig-target-hyperpar-effect.pdf]]
+
+* Asymptotic linear estimators
+\small
+#+begin_export latex
+For a function $f \colon \mathcal{O} \rightarrow \R$ and a measure $P$ on $\mathcal{O}$ we use the notation $P[f]$ to mean
+\begin{equation*}
+  P[f] := \int f(o)  P(\diff o).
+  \quad \text{For example, } \quad
+  \empmeas[f] = \frac{1}{n}\sum_{i=1}^{n}f(O_i).
+\end{equation*}
+We write $X_n = \smallO_P(r_n)$ to mean that $X_n/r_n \arrow{P} 0$. In particular, $\smallO_P(1)$
+denotes a term that converges to 0 in probability. 
+#+end_export
+
+** RAL estimators                                              :B_definition:
+    :PROPERTIES:
+    :BEAMER_env: definition
+    :END:
+#+BEGIN_EXPORT latex
+An estimator $\hat{\Psi}_n$ of the parameter $\Psi$ under the model $\mathcal{P}$, is
+called \textit{asymptotically linear} with \textit{influence function} $\ic(\blank, P)$, if 
+$P[\ic(\blank, P)] = 0$ for all $P \in \mathcal{P}$, and 
+\begin{equation*}
+  \sqrt{n}(\hat{\Psi}_n - \Psi) = \sqrt{n}(\empmeas-P)[\ic(\blank, P)] + \smallO_{P}(1).
+\end{equation*}
+
+\vfill
+
+By the central limit theorem
+$\sqrt{n}(\hat{\Psi}_n - \Psi) \rightsquigarrow \mathcal{N}(0,  P[\ic(\blank, P)^2])$.
+#+END_EXPORT
+
+\hfill
+
+The influence function of the RAL estimator with the smallest asymptotic variance is called the
+/efficient influence/ function or the /canonical gradient/.
+
+* The asymptotic behavior of $\hat\Psi_n^0$
+\small If we make no assumptions[fn:1] about $\mathcal{P}$ then all RAL estimators of a parameter
+$\Psi$ have the same influence function \citep{kennedy2016semiparametric}. Let $\ic(\blank;P)$ denote this
+unique influence function, and let $\hat P_n$ denote an estimator of $P$. Then we may write
+#+begin_export latex
+\begin{align*}
+  & \sqrt{n}(\hat{\Psi}_n^0 - \Psi)
+  \\
+  & = \sqrt{n}
+    \Psi(\hat P_n) - \Psi(P)
+  \\
+  &  = \sqrt{n}
+    \left(
+    \Psi(\hat P_n) - \Psi(P)
+    \pm
+    (\empmeas-P)[\ic(\blank; \hat P_n)]
+    \right)
+  \\
+  &  = \sqrt{n}(\empmeas-P)[\ic(\blank; \hat P_n)]
+    - \sqrt{n}\empmeas[\ic(\blank; \hat P_n)]
+    + \sqrt{n}\mathrm{Rem}(P,  \hat P_n),
+  % & = \sqrt{n}
+  %   \left(
+  %   \empmeas{[\phi(\blank; \hat{\nu}_n)]} - P{[\phi(\blank; \nu)]}
+  %   \right)    
+  % \\
+  % &  = \sqrt{n}
+  %   \left(
+  %   \empmeas{[\phi(\blank; \hat{\nu}_n)]} - P{[\phi(\blank; \nu)]} \pm
+  %   (\empmeas-P)[\ic(\blank; \hat{\nu}_n, \hat{\pi}_n)]
+  %   \right)
+  % \\
+  % &  = \sqrt{n}(\empmeas-P)[\ic(\blank; \hat{\nu}_n, \hat{\pi}_n)]
+  %   - \sqrt{n}\empmeas[\ic(\blank; \hat{\nu}_n, \hat{\pi}_n)]
+  %   + \sqrt{n}\mathrm{Rem}(P,  \hat{\nu}_n, \hat{\pi}_n),
+\end{align*}
+where we define
+\begin{equation*}
+  \mathrm{Rem}(P,  \hat{P}_n)
+  := \Psi(\hat P_n) 
+  + P[\ic(\blank; \hat P_n)]
+  - \Psi(P).
+\end{equation*}
+% \begin{equation*}
+%   \mathrm{Rem}(P,  \hat{\nu}_n, \hat{\pi}_n)
+%   := \empmeas{[\phi(\blank; \hat{\nu}_n)]} - P{[\phi(\blank; \nu)]}
+%   + P[\ic(\blank; \hat{\nu}_n, \hat{\pi}_n)].
+% \end{equation*}
+#+end_export
+Here $\Psi$ and $\ic$ might depend on different components of the measure $P$, for instance $\Psi$
+might depend on the nuisance parameters $\nu$ and $\mu$ while $\ic$ depend on $\mu$ and $\pi$.
+
+[fn:1] For estimation to be possible and positivity to hold we end up making /some/ assumptions.
+
+* The main variance term and the remainder
+\small
+** $(\empmeas-P)[\ic(\blank; \hat{P}_n)]$
+The first term can be controlled using /empirical process theory/ or /sample splitting/ (see
+\cite{kennedy2022semiparametric}), which allows us to write \[ \sqrt{n}(\empmeas-P)[\ic(\blank;
+\hat P_n)] = \sqrt{n}(\empmeas-P)[\ic(\blank; P)] + \smallO_P(1).\]
+
+** $\mathrm{Rem}(P, \hat{P}_n)$
+The influence function can also be understood as a /functional derivative/ of the parameter
+$\Psi\colon \mathcal{P} \rightarrow \R$. Thus \[\Psi(\hat P_n) + P[\ic(\blank; \hat{P}_n)]\] can be
+understood as a first order functional Taylor approximation to $\Psi(P)$. If $\| \hat{P}_n -P \| =
+\smallO_P(n^{-1/4})$ we might therefore expect that \[ \mathrm{Rem}(P, \hat{P}_n) = \Psi(\hat P_n) +
+P[\ic(\blank; \hat{P}_n)] - \Psi(P) = \smallO_P((n^{-1/4})^2) = \smallO_P(n^{-1/2}). \]
+
+* One-step / debiased estimator
+\small
+#+begin_export latex
+Combining these steps gives that
+\begin{align*}
+  & \sqrt{n}(\hat{\Psi}_n^0 - \Psi) 
+  \\
+    &  = \sqrt{n}(\empmeas-P)[\ic(\blank; \hat{P}_n)]
+    - \sqrt{n}\empmeas[\ic(\blank; \hat{P}_n)]
+    + \sqrt{n}\mathrm{Rem}(P,  \hat{P}_n)
+    \\
+    & =
+    \sqrt{n}(\empmeas-P)[\ic(\blank; P)]
+    - \sqrt{n}\empmeas[\ic(\blank; \hat{P}_n)]
+    + \smallO_P(1).
+\end{align*}
+#+end_export
+
+When the nuisance parameters $\nu$ and $\pi$ are high-dimensional the bias of the estimators
+$\hat{\nu}_n$ and $\hat{\pi}_n$ are typically larger than $\sqrt{n}$, and hence the second term
+above prevents our estimator from being RAL.
+
+\vfill
+
+A /one-step/ or /debiased estimator/ handles this problem simply by replacing $\hat\Psi_n^0$ with
+the estimator \[\hat\Psi_n:= \hat\Psi_n^0 + \empmeas[\ic(\blank; \hat{P}_n)],\] as then \[\sqrt n
+(\hat\Psi_n - \Psi):= \sqrt{n}(\empmeas-P)[\ic(\blank; P)] + \smallO_P(1),\] i.e., $\hat\Psi_n$ is
+RAL with influence function $\ic$.
+
+* The canonical gradient for the ATE
+\small For the ATE problem the canonical gradient is
+#+begin_export latex
+\begin{align*}
+  \ic(O; P)
+  & = \nu_P(X, 1) - \nu_P(X, 0)
+  \\
+  & \quad
+    + \frac{A}{\pi_P(X)}(Y - \nu_P(X, 1))
+    - \frac{1-A}{1-\pi_P(X)}(Y - \nu_P(X, 0))
+  \\
+  & \quad
+    - \Psi(P),
+\end{align*}
+#+end_export
+where $\pi$ denotes the \textit{propensity score} \(\pi(x) := P(A=1 \mid X=x)\), see
+\cite{kennedy2022semiparametric,kennedy2016semiparametric}.
+
+\vfill
+
+With estimators of $\nu$ and $\pi$ the one-step estimator becomes
+#+begin_export latex
+\begin{align*}
+  \hat{\Psi}_n
+  &  = \hat{\Psi}^0_n + \empmeas[\ic(O; \hat{\nu}_n, \hat{\pi}_n)]
+  \\
+  & = \frac{1}{n}\sum_{i=1}^{n}
+    \left\{
+    \hat\nu_n(X_i, 1) - \hat\nu_n(X_i, 0)
+    \right\}
+  \\
+  & \quad
+    +\frac{1}{n}\sum_{i=1}^{n}
+    \left\{
+    \frac{A_i}{\hat\pi_n(X_i)}(Y_i - \hat\nu_n(X_i, 1))
+    - \frac{1-A_i}{1-\hat\pi_n(X_i)}(Y_i - \hat\nu_n(X_i, 0))    
+    \right\}.
+\end{align*}
+#+end_export
+
+* Example with =R= code (canonical gradient)
+We use the same data and fitted model =model= and predictions =fit0= and =fit1= from earlier. To
+calculate the debiased estimator we also need to estimate the propensity model.
+#+BEGIN_SRC R :exports both
+  prop_model = cv.glmnet(as.matrix(dat[, -(1:2)]), dat[,A], alpha=0)
+  fit_A = predict(prop_model,
+		  newx=as.matrix(dat_c[, -(1:2)]),
+		  s = "lambda.min",
+		  typ = "response")
+  mean(fit1 - fit0) + 
+    mean(dat[, A]/fit_A*(dat[, Y] - fit1) -
+	 (1-dat[, A])/(1-fit_A)*(dat[, Y] - fit0))
+#+END_SRC
+
+#+RESULTS[(2022-05-09 23:21:38) 036892c757098e71863009af276e71ebb2d0efdf]:
+: [1] 0.2178547
+
+* Illustration of the effect of debiasing
+For our very simple data example the debiasing step is quite effective. 
+
+#+BEGIN_SRC R :results graphics file :exports results :file fig-debiased-estimator.pdf :width 7 :height 4
+  ate_sim_cv[,model:=factor(model,levels=c("G-formula","Debiased"),labels=c("G-formula", "Debiased"))]
+  ggplot(ate_sim_cv, aes(y = est, x = model)) + theme_classic() +
+    geom_hline(yintercept = effect.size, size = 2, col = "gray") +
+    geom_boxplot() + ylab("Estimate") + xlab("Type of estimator")
+#+END_SRC
+
+#+RESULTS[(2022-05-09 13:52:44) 6adfd428f89a97abbb80190978cc127d4993d4e4]:
+[[file:fig-debiased-estimator.pdf]]
+
+* For the rest of the project
+We now have a zoo of estimators for both the prediction problem and for estimating the ATE:
+1. For the prediction problem:
+   - The family of nuisance estimators indexed by our hyperparameter
+   - The choice of loss function and splitting procedure used in the cross-validation
+2. For estimation of the ATE: 
+   - The estimator based on the G-formula
+   - The debiased estimator
+   - For any choice of estimator of the outcome model (and the propensity model) we have an
+     estimator of the ATE
+
+\vfill
+
+*** gray                                        :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+
+\centering What is the effect of these choices on the two estimation problems?
+
+* References
+# \tiny \bibliography{./latex-settings/default-bib.bib}
+\small \bibliography{./latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Targeted Learning
+#+Author: Anders Munch
+#+Date: May 10, 2022
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+#+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\footnotesize}
+
+# # For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

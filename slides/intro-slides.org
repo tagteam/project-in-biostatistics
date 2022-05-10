@@ -165,7 +165,7 @@ Let $\hat\Psi_{\lambda}$ denote the plug-in estimator of $\Psi$ based on $\hat\n
 [[file:./fig-nuisance-target-tuning.pdf]]
 
 * References
-\small\bibliography{../latex-settings/default-bib.bib}
+\small\bibliography{./latex-settings/default-bib.bib}
 
 * HEADER :noexport:
 #+TITLE: Project in Biostatistics: Hyperparameter optimization
@@ -180,8 +180,8 @@ Let $\hat\Psi_{\lambda}$ denote the plug-in estimator of $\Psi$ based on $\hat\n
 #+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
 #+LaTeX_HEADER: \bibliographystyle{plain}
 # #+LaTeX_HEADER: \bibliographystyle{abbrvnat}
-#+LaTeX_HEADER: \input{../latex-settings/standard-commands.tex}
-#+BIBLIOGRAPHY: ../latex-settings/default-bib plain
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
 
 # Beamer settins:
 # #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 

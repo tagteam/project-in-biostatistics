@@ -1,4 +1,4 @@
-% Created 2022-04-24 Sun 23:04
+% Created 2022-05-08 Sun 21:10
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -29,7 +29,7 @@ basewidth={0.5em,0.4em},
 }
 \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
 \bibliographystyle{plain}
-\input{../latex-settings/standard-commands.tex}
+\input{./latex-settings/standard-commands.tex}
 \setbeamertemplate{footline}[frame number]
 \beamertemplatenavigationsymbolsempty
 \usepackage{appendixnumberbeamer}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:orgfa277ec}]{Outline of the setting}
+\begin{frame}[label={sec:org7c5ab8f}]{Outline of the setting}
 Let $\mathcal{P}$ be a collection of probability measures over $\R^{d+2}$, so that
 $O \sim P \in \mathcal{P}$, with $O = (Y, A, X)$, $Y\in \R$, $A\in \R$, and $X \in \R^d$.
 
@@ -82,7 +82,7 @@ parameter of interest is \(\Psi \colon \mathcal{P} \rightarrow \R\),
 \end{enumerate}
 \end{frame}
 
-\begin{frame}[label={sec:org3ca5003}]{Data}
+\begin{frame}[label={sec:org6f1cc6c}]{Data}
 You will work with a random subset of the data described in \cite{wikkelso2014prediction}. The
 dataset contains data from 48,272 Danish women who gave birth twice. The main outcome is a binary
 variable called PPH which indicates if the woman had a postpartum haemorrhage (heavy bleeding)
@@ -98,7 +98,7 @@ during the second delivery.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgbdaffad}]{Hyperparameter and model selection/construction}
+\begin{frame}[label={sec:org1887525}]{Hyperparameter and model selection/construction}
 Estimation of \(\nu\) is a well-studied problem. Many (machine) learning approaches depend on one or
 more hyperparameters that has to be chosen in some way. We want to examine how to do this properly,
 and what the practical effects are of the different possible approaches.
@@ -119,7 +119,7 @@ estimators (e.g., the Super Learner \cite{HoffmanBlog,van2011targeted}).
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgfa65db6}]{Target parameter and causal inference}
+\begin{frame}[label={sec:org8b899da}]{Target parameter and causal inference}
 \begin{block}{Target parameter}
 By explicitly defining a parameter of interest as an answer to a concrete scientific question we
 ensure that we can draw relevant and meaningful conclusions from our statistical analysis.
@@ -142,7 +142,7 @@ One example is the average treatment effect, \[\Psi(P) = \int {\left\{ \nu(x, 1)
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orge3ad38e}]{Targeted inference and hyperparameter selection}
+\begin{frame}[label={sec:orgece399c}]{Targeted inference and hyperparameter selection}
 Finding a good estimator \(\hat\nu\) of \(\nu\) \alert{does \emph{not} necessarily provide a good plug-in estimator
 of \(\Psi\)}! \(\rightarrow\) targeted learning and debiased ML
 \citep{van2006targeted,van2011targeted,chernozhukov2018double,kennedy2022semiparametric}.
@@ -165,7 +165,7 @@ Let \(\hat\Psi_{\lambda}\) denote the plug-in estimator of \(\Psi\) based on \(\
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org9120da7}]{References}
-\small\bibliography{../latex-settings/default-bib.bib}
+\begin{frame}[label={sec:orgc598a24}]{References}
+\small\bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
