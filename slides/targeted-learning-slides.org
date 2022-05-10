@@ -72,7 +72,7 @@ Remember to exceture (C-c C-c) the following line:
 #+RESULTS[(2022-05-09 13:35:10) c6f139f7bb27326c7565ac5003bcbf4baa589749]:
 
 * Scientific parameter of interest
-\small To make sure that our statistical analysis is of any interest, we should make sure that we
+\small To make sure that our statistical analysis is of any interest we should make sure that we
 estimate a meaningful and clearly interpretable parameter that answers a specific scientific
 question.
 ** The average treatment effect (ATE)                        :B_exampleblock:
@@ -359,18 +359,18 @@ With estimators of $\nu$ and $\pi$ the one-step estimator becomes
 We use the same data and fitted model =model= and predictions =fit0= and =fit1= from earlier. To
 calculate the debiased estimator we also need to estimate the propensity model.
 #+BEGIN_SRC R :exports both
-  prop_model = cv.glmnet(as.matrix(dat[, -(1:2)]), dat[,A], alpha=0)
+  prop_model = cv.glmnet(as.matrix(dat[, -(1:2)]), dat[,A], alpha=0, family="binomial")
   fit_A = predict(prop_model,
 		  newx=as.matrix(dat_c[, -(1:2)]),
 		  s = "lambda.min",
-		  typ = "response")
+		  type = "response")
   mean(fit1 - fit0) + 
     mean(dat[, A]/fit_A*(dat[, Y] - fit1) -
 	 (1-dat[, A])/(1-fit_A)*(dat[, Y] - fit0))
 #+END_SRC
 
-#+RESULTS[(2022-05-09 23:21:38) 036892c757098e71863009af276e71ebb2d0efdf]:
-: [1] 0.2178547
+#+RESULTS[(2022-05-10 17:00:49) bd3ad0f91987d365050de339bd90d2e6c88058a7]:
+: [1] 0.2179907
 
 * Illustration of the effect of debiasing
 For our very simple data example the debiasing step is quite effective. 
@@ -438,7 +438,7 @@ We now have a zoo of estimators for both the prediction problem and for estimati
 #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\footnotesize}
 
 # # For handout mode: (check order...)
-# #+LATEX_CLASS_OPTIONS: [handout]
+#+LATEX_CLASS_OPTIONS: [handout]
 # #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
 # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
 # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
