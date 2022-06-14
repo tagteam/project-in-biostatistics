@@ -177,7 +177,7 @@ superficially) we could do something like the following.
     ## Construct the actually observed outcome:
     sample0[, treatment_prob := predict(propensity_model, newdata = .SD, type = "response")]
     sample0[, eval(treatment_var) := runif(n) < treatment_prob] ## The treatment actually given
-    sample0[, eval(outcome_var) := (Y0*get(treatment_var) + Y1*(!(get(treatment_var)))) == 1]
+    sample0[, eval(outcome_var) := (Y1*get(treatment_var) + Y0*(!(get(treatment_var)))) == 1]
     ## Clean up
     for (nn in c("Y0", "Y1", treatment_var, outcome_var))
       set(sample0, j = nn, value = factor(sample0[[nn]], levels = c(FALSE, TRUE), labels = c("No", "Yes")))
