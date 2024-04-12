@@ -1,4 +1,4 @@
-#+TITLE: Project in biostatistics: hyperparameter optimization
+#+TITLE: Project in biostatistics: Targeted learning and cross-fitting
 #+Author: Anders Munch & Thomas Alexander Gerds
 #+LANGUAGE:  en
 #+OPTIONS: H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
@@ -17,156 +17,61 @@
 
 ** Background and motivation
 
-We consider the following two different problems of applied
-biostatistics:
+Let \( \mathcal{P} \) be a collection of probability measures and \( \Psi \colon
+\mathcal{P} \rightarrow \R\) a pathwise differentiable parameter of interest.
+For many problems, the parameter \( \Psi \) can be written as
+\begin{equation*}
+  \Psi(P) = P{[\phi(\blank, \nu(P))]},
+\end{equation*}
+where \( \nu \) is some function-valued nuisance parameter and we use the
+notation \( P{[f]} = \int f \diff P \). By using tools from semiparametric
+efficiency theory it is possible to choose the function $\phi$ such that valid
+statistical inference for $\Psi$ can be obtained, even when $\nu$ is estimated
+with data-adaptive algorithms such as machine learning
+\citep{bickel1993efficient,van2011targeted,chernozhukov2018double}.
 
-1. the making of a medical risk prediction model
-2. semi-parametric estimation of a real valued target parameter in the presence of a high dimensional nuissance parameter
+With \( \empmeas \) denoting the empirical measure of an iid.\nbsp{}sample \(
+\{O_i\}_{i=1}^n \) from some \( P \in \mathcal{P}\) and $\hat{\nu}_n$ an
+estimator of the nuisance parameter $\nu$, a natural estimator of $\Psi$ is
+\begin{equation*}
+  \hat{\Psi}_n = \empmeas{[\phi(\blank, \hat{\nu}_n)]}. 
+\end{equation*}
+This estimator will be consistent and asymptotically normal under a set of
+general assumptions about the function \( \phi \) and the estimator
+\( \hat{\nu}_n \). One assumption is that \( \hat{\nu}_n \) takes values in a
+so-called \textit{Donsker class} of functions. To avoid this assumption it has
+been suggested to instead employ \textit{cross-fitting}, where \( \empmeas \)
+and $\hat{\nu}_n$ are constructed using separate parts of the data
+\citep{chernozhukov2018double}.
 
-Both problems can be approached using methods from machine learning
-and hence they share the important task of hyperparameter
-optimization, aka tuning. Interestingly, the optimal value of the
-hyperparameter of a machine learning method is typically not the same
-for the two problems. This phenomenom is illustrated by the R-code
-below in the case of a penalized linear ridge regression with tuning
-parameter lambda. Compared are the optimal lambda values for:
+Cross-fitting allows us to work under theoretically weaker assumptions at the
+cost of using only a subset of the data to fit a potentially complex estimator.
+Whether cross-fitting is theoretically necessary, and what the effect is in
+finite sample settings is not well understood (compare, e.g.,
+\cite{chen2022debiased} and \cite{zivich2021machine}).
 
-1. predicting the outcome Y
-2. the average treatment effect of a binary variable A.
+* The project
+In this project we investigate the effect of sample splitting for estimation of
+the average treatment effect, which is a causal parameter of interest
+\citep{hernanRobinsWhatIf}. We will examine different cross-fitted versions of
+different targeted estimators, such as the targeted maximum likelihood estimator
+\citep{van2006targeted,van2011targeted}, under different data-generating
+mechanisms.
 
-*** Example: Tuning a penalized linear regression
+You will work with a random subset of the data described in
+\citep{wikkelso2014prediction}. The dataset contains data from 48,272 Danish
+women who gave birth twice. The main outcome is a binary variable indicating if
+the woman had a postpartum haemorrhage (heavy bleeding) during the second
+delivery. We use the real-world data set to guide our theoretical and numerical
+studies.
 
-#+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
-library(glmnet)
-library(data.table)
-library(ggplot2)
-library(riskRegression)
-library(lava)
-library(foreach)
-
-simulator <- function(n=1000, p=10, effect.size){
-  X = paste0("X",1:10)
-  m =  lvm()
-  distribution(m,X) = normal.lvm()
-  distribution(m,"A") = binomial.lvm()
-  distribution(m,"Y") = normal.lvm()
-  regression(m) = as.formula(paste0("Y ~ f(A,",effect.size,")"))
-  return(sim(m,n))
-}
-glm(Y~A,data = simulator(effect.size = .8))
-
-runner <- function(M, lambda=round(exp(seq(2.5, -4, length.out=200)),4), alpha=0, ...){
-  out <- foreach(m = 1:M,.combine = "rbind") %do%{
-    train <- simulator(n = 1000, effect.size = .2)
-    model <- glmnet(train[, -match("Y",names(train))], train[,"Y"], alpha=alpha, lambda=lambda,...)
-    test <- simulator(n=10000,effect.size = .2)
-    predicted.values <- predict(model, newx=as.matrix(test[, -match("Y",names(test))]))
-    ## Mean squared prediction error
-    ## +++++++++++++++++++++++++++++
-    prediction.error <- data.table(lambda=lambda,
-                                   mse=apply((predicted.values - test[["Y"]])^2, 2, mean),
-                                   target="prediction",
-                                   sim=m)
-    ## Mean squared error of G-formula estimate of target parameter
-    ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    dat.copy <- copy(train)
-    dat.copy[["A"]] = 0
-    fit0 <- predict(model, newx=as.matrix(dat.copy[, -1]))
-    dat.copy[["A"]] = 1
-    fit1 <- predict(model, newx=as.matrix(dat.copy[, -1]))
-    mse.target <- data.table(lambda=lambda,mse=(apply(fit1-fit0, 2, mean)-effect.size)^2,target="ATE",sim=m)
-    return(rbind(prediction.error, mse.target))
-  }
-  Out = out[,.(MSE =mean(mse)),by = c("lambda","target")]
-  return(Out[])
-}
-set.seed(341)
-x <- runner(M=20)
-
-x[, std.MSE := (MSE-min(MSE))/(max(MSE)-min(MSE)), by = .(target)]
-ggplot(x, aes(x=log(lambda), y=std.MSE, col=target)) + theme_bw() +
-  geom_line() + ylab("Standardized MSE") + 
-  geom_point(data=x[std.MSE==0], size=2) 
-#+END_SRC
-
-** Real world data
-
-You will work with a random subset of the data described in Wikkelsø
-et al. 2014 ([[https://www.tandfonline.com/doi/full/10.3109/14767058.2013.872095][The Journal of Maternal-Fetal & Neonatal Medicine, 27(16):1661-1667, 2014]]).
-The dataset contains data from 48272 Danish women who gave
-birth twice. The main outcome is a binary variable called =PPHbin=
-which indicates if the woman had a postpartum haemorrhage (heavy
-bleeding) during the second delivery.
-
-1. You develop a model that predicts postpartum haemorrhage at the
-   second delivery based on characteristics of the first delivery.
-2. You estimate the causal effect of a planned cesarian section on the
-   risk of postpartum haemorrhage, i.e., the effect of a hypothetical study
-   which randomizes women to either intended cesarian section or intended
-   vaginal birth.
-
-** Project work
-
-The overall theme is the hyperparameter tuning of a (machine) learning
-method for
-
-1. predicting risk of postpartum haemorrhage at second delivery
-2. estimating the causal effect of a planned cesarian section
-
-Each student will set own distribution of work across the building
-blocks of biostatistics: theory, simulation and data analysis. 
-
-* Methodology
-
-Here are some keywords and references. Detailed instructions regarding
-the project work are provided at the group meetings. 
-
-** Prediction model
-
-- [[https://www.khstats.com/blog/sl/superlearning/][Hoffman's blog]]
-
-Choose a (machine) learning method for binary outcomes:
-
- - gam
- - penalized regression 
- - random forest
- - gbm
- - superlearner 
-   
-** Brier score: mean squared error of prediction
-
-- [[https://github.com/tagteam/riskRegression][riskRegression]]
-
-Estimate the mean squared error of prediction using the Brier
-score. Describe the challenges of cross-validation in theoretical
-terms (formula that describes the cross-validation estimator of MSE,
-what is estimated?) and practical terms (Monte-Carlo error, choice of
-folds).
-
-** Causal inference
-
-- [[https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/][Hernan & Robins]]
-
-Describe the causal effect with counterfactual variables and
-discuss the assumptions that are needed in order to identify the
-causal effect from the real world data from a theoretical (definition
-of the assumptions) and from an applied perspective (how likely are
-they satisfied).
-
-** Semi-parametric efficiency theory
-
-- [[https://arxiv.org/abs/2203.06469][Kennedy 2022]]
-
-Describe the target parameter, i.e., the causal effect, as a
-functional operating on the space of probability measures of the
-observations Y,A,W where Y is the outcome (postpartum
-haemorrhage), A the treatment (planned cesarian section) and W all
-the variables from the first birth. Derive the canonical gradient of
-the functional (aka the Gateaux derivative). Estimate the nuissance
-parameters using the prediction model from above and a second model
-which predicts the probability of a planned cesarian section A=1
-based on W.
- 
-
+In this project we touch upon elements of causal inference and targeted
+learning. \cite{kennedy2016semiparametric,kennedy2022semiparametric} and
+\cite{hines2022demystifying} provide good introductions to the theory of
+targeted learning. The central philosophy of targeted learning is that we
+clearly and explicitly define the parameter of interest that we want to
+estimate. A major goal of this project is to be able to describe both your
+parameter of interest and your estimator in clear and precise mathematical
+terms.
 
 
