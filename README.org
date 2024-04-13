@@ -80,8 +80,8 @@ effect of cross-fitting in finite samples. In this project we work
 with elements of causal inference and asymptotic semiparametric
 theory. Good introductions to the theory of targeted learning are
 cite:kennedy2016semiparametric,kennedy2022semiparametric and
-cite:hines2022demystifying. Recent papers on cross-fitting are
-cite:chen2022debiased and cite:zivich2021machine.
+cite:hines2022demystifying. Relevant papers on cross-fitting are
+cite:newey2018cross,chen2022debiased and cite:zivich2021machine.
 
 bibliography:bib.bib
 bibliographystyle:chicago
