@@ -9,6 +9,8 @@
 #+LaTeX_HEADER:\usepackage[table,usenames,dvipsnames]{xcolor}
 #+LaTeX_HEADER:\definecolor{lightGray}{gray}{0.98}
 #+LaTeX_HEADER:\definecolor{medioGray}{gray}{0.83}
+#+LaTeX_HEADER:\newcommand{\diff}{\mathrm d}
+#+LaTeX_HEADER:\newcommand{\empmeas}{P_n}
 #+LaTeX_HEADER:\author{Anders Munch \& Thomas Alexander Gerds}
 #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen}
 #+setupfile:~/emacs-genome/snps/org-templates/setup-all-purpose.org
@@ -17,61 +19,69 @@
 
 ** Background and motivation
 
-Let \( \mathcal{P} \) be a collection of probability measures and \( \Psi \colon
-\mathcal{P} \rightarrow \R\) a pathwise differentiable parameter of interest.
-For many problems, the parameter \( \Psi \) can be written as
-\begin{equation*}
-  \Psi(P) = P{[\phi(\blank, \nu(P))]},
-\end{equation*}
-where \( \nu \) is some function-valued nuisance parameter and we use the
-notation \( P{[f]} = \int f \diff P \). By using tools from semiparametric
-efficiency theory it is possible to choose the function $\phi$ such that valid
-statistical inference for $\Psi$ can be obtained, even when $\nu$ is estimated
-with data-adaptive algorithms such as machine learning
-\citep{bickel1993efficient,van2011targeted,chernozhukov2018double}.
+The central philosophy of targeted learning is to clearly separate the
+definition of the parameter of interest, /the target parameter/, and
+the models/algorithms used for estimation. Let \( \mathcal{P} \) be a
+collection of probability measures and \( \Psi \colon \mathcal{P}
+\rightarrow R\) a pathwise differentiable parameter of interest,
+called /the target parameter/.  In this project we consider estimation
+problems, where the parameter \( \Psi \) can be written as
+\begin{equation}\label{eq1}
+  \Psi(P) = \int \phi(x, \nu(P)) P(\diff x) = P{[\phi(\cdot, \nu(P))]}.
+\end{equation}
+In this setting \( \nu: \mathcal P \to \mathcal F \) is a
+function-valued nuisance parameter, such that \(v(P)\) is a regression
+function.  Note also that we use the notation \( P{[f]} = \int f \diff
+P \). By using tools from semiparametric efficiency theory it is
+possible to choose the function $\phi$ such that valid statistical
+inference for $\Psi$ can be obtained, even when $\nu$ is estimated
+with data-adaptive algorithms and machine learning
+\citep{van2011targeted,chernozhukov2018double}.
 
-With \( \empmeas \) denoting the empirical measure of an iid.\nbsp{}sample \(
-\{O_i\}_{i=1}^n \) from some \( P \in \mathcal{P}\) and $\hat{\nu}_n$ an
-estimator of the nuisance parameter $\nu$, a natural estimator of $\Psi$ is
+Let \( \empmeas \) denote the empirical measure of an
+iid.\nbsp{}sample \( \{O_i\}_{i=1}^n \) from some \( P \in
+\mathcal{P}\) and suppose we have been given an estimator
+$\hat{\nu}_n$ of the nuisance parameter $\nu$. Then, a natural
+estimator of the target parameter $\Psi$ is
 \begin{equation*}
-  \hat{\Psi}_n = \empmeas{[\phi(\blank, \hat{\nu}_n)]}. 
+  \hat{\Psi}_n = \empmeas{[\phi(\cdot, \hat{\nu}_n)]}. 
 \end{equation*}
 This estimator will be consistent and asymptotically normal under a set of
-general assumptions about the function \( \phi \) and the estimator
-\( \hat{\nu}_n \). One assumption is that \( \hat{\nu}_n \) takes values in a
+regularity assumptions about the function \( \phi \) and the set \(\mathcal P\) if the estimator
+\( \hat{\nu}_n \) converges sufficiently fast to \(\nu(P)\) for all \(P\in\mathcal P\). One assumption is that \( \hat{\nu}_n \) takes values in a
 so-called \textit{Donsker class} of functions. To avoid this assumption it has
 been suggested to instead employ \textit{cross-fitting}, where \( \empmeas \)
 and $\hat{\nu}_n$ are constructed using separate parts of the data
 \citep{chernozhukov2018double}.
 
-Cross-fitting allows us to work under theoretically weaker assumptions at the
-cost of using only a subset of the data to fit a potentially complex estimator.
-Whether cross-fitting is theoretically necessary, and what the effect is in
-finite sample settings is not well understood (compare, e.g.,
-\cite{chen2022debiased} and \cite{zivich2021machine}).
-
 * The project
-In this project we investigate the effect of sample splitting for estimation of
-the average treatment effect, which is a causal parameter of interest
-\citep{hernanRobinsWhatIf}. We will examine different cross-fitted versions of
-different targeted estimators, such as the targeted maximum likelihood estimator
-\citep{van2006targeted,van2011targeted}, under different data-generating
-mechanisms.
 
-You will work with a random subset of the data described in
-\citep{wikkelso2014prediction}. The dataset contains data from 48,272 Danish
-women who gave birth twice. The main outcome is a binary variable indicating if
-the woman had a postpartum haemorrhage (heavy bleeding) during the second
-delivery. We use the real-world data set to guide our theoretical and numerical
-studies.
+In this project we aim to learn about the theoretical and practical
+properties of cross-fitting in the context of targeted learning. You
+will work with the data described in \citep{wikkelso2014prediction}.
+The dataset available for this project contains data from 48,272
+Danish women who all gave birth twice. The main outcome is a binary
+variable indicating if the woman had a postpartum haemorrhage (heavy
+bleeding) during the second delivery. The target parameter is the
+causal effect of a planned cesarian section on the risk of postpartum
+haemorrhage at the second delivery. This parameter is a special case
+of equation ref:eq1 where \(\nu(P)\) is the conditional probability of
+a planned cesarian section at the second delivery given
+characteristics of the first delivery. Under the usual assumptions
+needed for causal inference, the causal effect coincides with the one
+of a hypothetical study which randomizes women to either planned
+cesarian section or intended vaginal birth.
 
-In this project we touch upon elements of causal inference and targeted
-learning. \cite{kennedy2016semiparametric,kennedy2022semiparametric} and
-\cite{hines2022demystifying} provide good introductions to the theory of
-targeted learning. The central philosophy of targeted learning is that we
-clearly and explicitly define the parameter of interest that we want to
-estimate. A major goal of this project is to be able to describe both your
-parameter of interest and your estimator in clear and precise mathematical
-terms.
+You will derive a cross-fitting algorithm and construct a targeted
+minimum loss based estimator
+\citep{van2006targeted,van2011targeted}. You will study the role of
+cross-fitting for the asymptotic inference theoretically and the
+effect of cross-fitting in finite samples. In this project we work
+with elements of causal inference and asymptotic semiparametric
+theory. Good introductions to the theory of targeted learning are
+cite:kennedy2016semiparametric,kennedy2022semiparametric and
+cite:hines2022demystifying. Recent papers on cross-fitting are
+cite:chen2022debiased and cite:zivich2021machine.
 
-
+bibliography:bib.bib
+bibliographystyle:chicago
