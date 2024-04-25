@@ -1,0 +1,8 @@
+#+TITLE: Project in statistics: Targeted learning and cross-fitting
+
+We use this page to collect material for the project in statistics about
+targeted learning and cross-fitting. The project description can be found [[./project-description.pdf][here]].
+
+* References
+- [[https://arxiv.org/abs/2107.00681][Demystifying statistical learning based on efficient influence functions
+  (Hines et al., 2022)]]
