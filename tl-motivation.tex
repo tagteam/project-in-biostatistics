@@ -1,4 +1,4 @@
-% Created 2024-04-25 Thu 13:40
+% Created 2024-04-25 Thu 13:46
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -86,7 +86,7 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 
-\begin{frame}[label={sec:orgb91ed99}]{A parameter of interest}
+\begin{frame}[label={sec:org10f51db}]{A parameter of interest}
 A target parameter is a functional
 \begin{equation*}
   \Psi \colon \mathcal{P} \longrightarrow \R.
@@ -104,7 +104,7 @@ a conditional probability.
 \end{frame}
 
 
-\begin{frame}[label={sec:org48a3d5e}]{A parameter of interest -- our setting}
+\begin{frame}[label={sec:orga8b9b09}]{A parameter of interest -- our setting}
 \small
 
 Population of women at their second birth \citep{wikkelso2014prediction}.
@@ -129,11 +129,11 @@ Our parameter of interest is
     \right]}
   \\
   & = 
-    P{[f(1, \blank; P) - f(0, \blank; P)]}    ,
+    P{[\nu(1, \blank; P) - \nu(0, \blank; P)]}    ,
 \end{align*}
 where
 \begin{equation*}
-  f(a, w; P) = \E_P{\left[ Y \mid A=a, W=w  \right]}.
+  \nu(a, w; P) = \E_P{\left[ Y \mid A=a, W=w  \right]}.
 \end{equation*}
 
 \vfill
@@ -144,31 +144,31 @@ treatment\color{black}, \(\Psi\)(P) can be interpreted as the average treatment
 effect (ATE) of a planned c-section on PPH. This is known a the g-formula.
 \end{frame}
 
-\begin{frame}[label={sec:orga28d02d}]{Parametric modeling versus ML}
+\begin{frame}[label={sec:orgf9b291e}]{Parametric modeling versus ML}
 \small
 \begin{block}{Parametric approach}
-Fit a parametric model for \( f \) (e.g., logistic regression). Estimate
+Fit a parametric model for \( \nu \) (e.g., logistic regression). Estimate
 $\Psi$ with
 \begin{equation*}
-  \hat{\Psi}_n^{\text{glm}} =\empmeas{[\hat{f}_n^{\text{glm}}(1, \blank)- \hat{f}_n^{\text{glm}}(0,
+  \hat{\Psi}_n^{\text{glm}} =\empmeas{[\hat{\nu}_n^{\text{glm}}(1, \blank)- \hat{\nu}_n^{\text{glm}}(0,
     \blank)]}
   = \frac{1}{n}\sum_{i=1}^{n}
   \left\{
-    \hat{f}_n^{\text{glm}}(1, W_i) - \hat{f}_n^{\text{glm}}(0, W_i)
+    \hat{\nu}_n^{\text{glm}}(1, W_i) - \hat{\nu}_n^{\text{glm}}(0, W_i)
   \right\}.
 \end{equation*}
 \end{block}
 
 
 \begin{block}{Nonparametric (machine learning) approach}
-Fit a machine learning algorithm to learn \( f \) (e.g., random forest).
+Fit a machine learning algorithm to learn \( \nu \) (e.g., random forest).
 Estimate $\Psi$ with
 \begin{equation*}
-  \hat{\Psi}_n^{\text{RF}} = \empmeas{[\hat{f}_n^{\text{RF}}(1, \blank)- \hat{f}_n^{\text{RF}}(0,
+  \hat{\Psi}_n^{\text{RF}} = \empmeas{[\hat{\nu}_n^{\text{RF}}(1, \blank)- \hat{\nu}_n^{\text{RF}}(0,
     \blank)]}
   = \frac{1}{n}\sum_{i=1}^{n}
   \left\{
-    \hat{f}_n^{\text{RF}}(1, W_i) - \hat{f}_n^{\text{RF}}(0, W_i)
+    \hat{\nu}_n^{\text{RF}}(1, W_i) - \hat{\nu}_n^{\text{RF}}(0, W_i)
   \right\}.
 \end{equation*}
 
@@ -181,7 +181,7 @@ Estimate $\Psi$ with
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org612a8a7}]{Targeted estimators}
+\begin{frame}[label={sec:org2efa82c}]{Targeted estimators}
 Semi-parametric efficiency theory tells us that an initial estimator can be
 improved by adding an augmentation term:
 
@@ -198,10 +198,10 @@ function \color{black} (aka \color{bblue}canonical gradient\color{black}) of
 \vfill
 
 The term \(P{[\dot{\psi}(\blank, \hat{P}_n)]}\) can be interpreted as the
-first order bias due to the estimation of \(f\) with \(\hat{f}_n^{\text{RF}}\), and we approximate this with \(\empmeas{[\dot{\psi}(\blank, \hat{P}_n)]}\).
+first order bias due to the estimation of \(\nu\) with \(\hat{\nu}_n^{\text{RF}}\), and we approximate this with \(\empmeas{[\dot{\psi}(\blank, \hat{P}_n)]}\).
 \end{frame}
 
-\begin{frame}[label={sec:org356079f}]{Targeted estimators -- our setting}
+\begin{frame}[label={sec:orgae3adca}]{Targeted estimators -- our setting}
 \small
 
 The EIF for our \(\Psi\) is well-known
@@ -209,14 +209,14 @@ The EIF for our \(\Psi\) is well-known
 and equals
 \begin{align*}
   \dot{\psi}(X; P)
-  & = f(W, 1; P) - f(W, 0;P)
+  & = \nu(W, 1; P) - \nu(W, 0;P)
     - \Psi(P)
   \\
   & \quad
-    + \frac{A}{\pi(W;P)}(Y - f(W, 1; P))
-    - \frac{1-A}{1-\pi(W;P)}(Y - f(W, 0;P)),
+    + \frac{A}{\pi(W;P)}(Y - \nu(W, 1; P))
+    - \frac{1-A}{1-\pi(W;P)}(Y - \nu(W, 0;P)),
 \end{align*}
-where
+where $\pi$ is the propensity score,
 \begin{equation*}
   \pi(w; P) = P(A=1 \mid W=w).
 \end{equation*}
@@ -229,11 +229,11 @@ A targeted estimator of \(\Psi\) is then
   \frac{1}{n}\sum_{i=1}^{n}
   \Big\{
   &
-    \hat{f}_n^{\text{RF}}(1, W_i) - \hat{f}_n^{\text{RF}}(0, W_i)
-    + \frac{A_i}{\hat{\pi}_n(W_i;P)}(Y_i - f(W_i, 1; P))
+    \hat{\nu}_n^{\text{RF}}(1, W_i) - \hat{\nu}_n^{\text{RF}}(0, W_i)
+    + \frac{A_i}{\hat{\pi}_n(W_i;P)}(Y_i - \nu(W_i, 1; P))
   \\
   & \quad
-    - \frac{1-A_i}{1-\hat{\pi}_n(W_i;P)}(Y_i - f(W_i, 0;P))
+    - \frac{1-A_i}{1-\hat{\pi}_n(W_i;P)}(Y_i - \nu(W_i, 0;P))
     \Big\},
 \end{align*}
 where $\hat{\pi}_n$ is an estimator of $\pi$.
@@ -241,16 +241,20 @@ where $\hat{\pi}_n$ is an estimator of $\pi$.
 
 
 
-\begin{frame}[label={sec:org1b72ee4},fragile]{A simple simulation study}
- \begin{enumerate}
+\begin{frame}[label={sec:org2f62858},fragile]{Simulation study}
+ \small
+
+\begin{enumerate}
 \item Generate a simulated data set of 800 individuals with 10 covariates.
 \item Fit a ridge regression for the outcome using cross-validation to select
 to penalty parameter
-\item Use to g-formula to estimate the ATE. We refer to this estimator as \texttt{naive}.
-\item Fit another ridge regression for the propensity using cross-validation to select to penalty
-parameter
-\item Use the efficient influence function and the estimator of propensity to target/debias
-the estimator calculated in step 3. We refer to this estimator as \texttt{one-step}.
+\item Use the fit from step 2 to and the g-formula to estimate the ATE. We refer to
+this estimator as \texttt{naive}.
+\item Fit another ridge regression for the propensity score using cross-validation
+to select to penalty parameter
+\item Use the efficient influence function and the estimators from step 2 and 4 to
+target/debias the estimator calculated in step 3. We refer to this estimator
+as \texttt{one-step}.
 \end{enumerate}
 
 
@@ -265,13 +269,13 @@ Examine performance of the two estimators by comparing these 1000 random samples
 to the true ATE.
 \end{frame}
 
-\begin{frame}[label={sec:orgb82a34e}]{Result of simulation study}
+\begin{frame}[label={sec:orge12ba4a}]{Result of simulation study}
 \begin{center}
 \includegraphics[width=.9\linewidth]{naive-vs-targeted.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org13e83ad},fragile]{Statistical inference}
+\begin{frame}[label={sec:org91e4ec4},fragile]{Statistical inference}
  To quantify uncertainty we calculate confidence intervals. This procedure relies
 on an estimate of the asymptotic variance of our estimator.
 
@@ -296,7 +300,7 @@ based on the models we have already fitted.
 \end{frame}
 
 
-\begin{frame}[label={sec:org13c1522}]{References}
+\begin{frame}[label={sec:org3675e11}]{References}
 \footnotesize \bibliography{bib.bib}
 \end{frame}
 \end{document}

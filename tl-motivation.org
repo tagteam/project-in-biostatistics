@@ -137,11 +137,11 @@ Our parameter of interest is
     \right]}
   \\
   & = 
-    P{[f(1, \blank; P) - f(0, \blank; P)]}    ,
+    P{[\nu(1, \blank; P) - \nu(0, \blank; P)]}    ,
 \end{align*}
 where
 \begin{equation*}
-  f(a, w; P) = \E_P{\left[ Y \mid A=a, W=w  \right]}.
+  \nu(a, w; P) = \E_P{\left[ Y \mid A=a, W=w  \right]}.
 \end{equation*}
 #+end_export
 
@@ -156,14 +156,14 @@ effect (ATE) of a planned c-section on PPH. This is known a the g-formula.
 \small
 ** Parametric approach
 #+begin_export latex
-Fit a parametric model for \( f \) (e.g., logistic regression). Estimate
+Fit a parametric model for \( \nu \) (e.g., logistic regression). Estimate
 $\Psi$ with
 \begin{equation*}
-  \hat{\Psi}_n^{\text{glm}} =\empmeas{[\hat{f}_n^{\text{glm}}(1, \blank)- \hat{f}_n^{\text{glm}}(0,
+  \hat{\Psi}_n^{\text{glm}} =\empmeas{[\hat{\nu}_n^{\text{glm}}(1, \blank)- \hat{\nu}_n^{\text{glm}}(0,
     \blank)]}
   = \frac{1}{n}\sum_{i=1}^{n}
   \left\{
-    \hat{f}_n^{\text{glm}}(1, W_i) - \hat{f}_n^{\text{glm}}(0, W_i)
+    \hat{\nu}_n^{\text{glm}}(1, W_i) - \hat{\nu}_n^{\text{glm}}(0, W_i)
   \right\}.
 \end{equation*}
 #+end_export
@@ -171,14 +171,14 @@ $\Psi$ with
 
 ** Nonparametric (machine learning) approach
 #+begin_export latex
-Fit a machine learning algorithm to learn \( f \) (e.g., random forest).
+Fit a machine learning algorithm to learn \( \nu \) (e.g., random forest).
 Estimate $\Psi$ with
 \begin{equation*}
-  \hat{\Psi}_n^{\text{RF}} = \empmeas{[\hat{f}_n^{\text{RF}}(1, \blank)- \hat{f}_n^{\text{RF}}(0,
+  \hat{\Psi}_n^{\text{RF}} = \empmeas{[\hat{\nu}_n^{\text{RF}}(1, \blank)- \hat{\nu}_n^{\text{RF}}(0,
     \blank)]}
   = \frac{1}{n}\sum_{i=1}^{n}
   \left\{
-    \hat{f}_n^{\text{RF}}(1, W_i) - \hat{f}_n^{\text{RF}}(0, W_i)
+    \hat{\nu}_n^{\text{RF}}(1, W_i) - \hat{\nu}_n^{\text{RF}}(0, W_i)
   \right\}.
 \end{equation*}
 #+end_export
@@ -214,7 +214,7 @@ $\Psi$.
 \vfill
 
 The term \( P{[\dot{\psi}(\blank, \hat{P}_n)]} \) can be interpreted as the
-first order bias due to the estimation of \( f \) with \( \hat{f}_n^{\text{RF}}
+first order bias due to the estimation of \( \nu \) with \( \hat{\nu}_n^{\text{RF}}
 \), and we approximate this with \( \empmeas{[\dot{\psi}(\blank, \hat{P}_n)]}
 \).
 
@@ -227,14 +227,14 @@ and equals
 #+begin_export latex
 \begin{align*}
   \dot{\psi}(X; P)
-  & = f(W, 1; P) - f(W, 0;P)
+  & = \nu(W, 1; P) - \nu(W, 0;P)
     - \Psi(P)
   \\
   & \quad
-    + \frac{A}{\pi(W;P)}(Y - f(W, 1; P))
-    - \frac{1-A}{1-\pi(W;P)}(Y - f(W, 0;P)),
+    + \frac{A}{\pi(W;P)}(Y - \nu(W, 1; P))
+    - \frac{1-A}{1-\pi(W;P)}(Y - \nu(W, 0;P)),
 \end{align*}
-where
+where $\pi$ is the propensity score,
 \begin{equation*}
   \pi(w; P) = P(A=1 \mid W=w).
 \end{equation*}
@@ -249,11 +249,11 @@ A targeted estimator of $\Psi$ is then
   \frac{1}{n}\sum_{i=1}^{n}
   \Big\{
   &
-    \hat{f}_n^{\text{RF}}(1, W_i) - \hat{f}_n^{\text{RF}}(0, W_i)
-    + \frac{A_i}{\hat{\pi}_n(W_i;P)}(Y_i - f(W_i, 1; P))
+    \hat{\nu}_n^{\text{RF}}(1, W_i) - \hat{\nu}_n^{\text{RF}}(0, W_i)
+    + \frac{A_i}{\hat{\pi}_n(W_i;P)}(Y_i - \nu(W_i, 1; P))
   \\
   & \quad
-    - \frac{1-A_i}{1-\hat{\pi}_n(W_i;P)}(Y_i - f(W_i, 0;P))
+    - \frac{1-A_i}{1-\hat{\pi}_n(W_i;P)}(Y_i - \nu(W_i, 0;P))
     \Big\},
 \end{align*}
 where $\hat{\pi}_n$ is an estimator of $\pi$.
@@ -261,16 +261,19 @@ where $\hat{\pi}_n$ is an estimator of $\pi$.
 
 
 
-* A simple simulation study
+* Simulation study
+\small
 
 1. Generate a simulated data set of 800 individuals with 10 covariates.
 2. Fit a ridge regression for the outcome using cross-validation to select
    to penalty parameter
-3. Use to g-formula to estimate the ATE. We refer to this estimator as =naive=.
-4. Fit another ridge regression for the propensity using cross-validation to select to penalty
-   parameter
-5. Use the efficient influence function and the estimator of propensity to target/debias
-   the estimator calculated in step 3. We refer to this estimator as =one-step=.
+3. Use the fit from step 2 to and the g-formula to estimate the ATE. We refer to
+   this estimator as =naive=.
+4. Fit another ridge regression for the propensity score using cross-validation
+   to select to penalty parameter
+5. Use the efficient influence function and the estimators from step 2 and 4 to
+   target/debias the estimator calculated in step 3. We refer to this estimator
+   as =one-step=.
 
 
 \vfill
