@@ -1,4 +1,4 @@
-% Created 2024-04-25 Thu 13:46
+% Created 2024-04-25 Thu 13:55
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -80,13 +80,13 @@ basewidth={0.5em,0.4em},
 \usepackage{hyperref}
 \usetheme{default}
 \author{Anders Munch}
-\date{\today}
+\date{April 26, 2024}
 \title{Motivating targeted learning}
 \begin{document}
 
 \maketitle
 
-\begin{frame}[label={sec:org10f51db}]{A parameter of interest}
+\begin{frame}[label={sec:orga6e9c25}]{A parameter of interest}
 A target parameter is a functional
 \begin{equation*}
   \Psi \colon \mathcal{P} \longrightarrow \R.
@@ -104,7 +104,7 @@ a conditional probability.
 \end{frame}
 
 
-\begin{frame}[label={sec:orga8b9b09}]{A parameter of interest -- our setting}
+\begin{frame}[label={sec:orgadf46f6}]{A parameter of interest -- our setting}
 \small
 
 Population of women at their second birth \citep{wikkelso2014prediction}.
@@ -144,7 +144,7 @@ treatment\color{black}, \(\Psi\)(P) can be interpreted as the average treatment
 effect (ATE) of a planned c-section on PPH. This is known a the g-formula.
 \end{frame}
 
-\begin{frame}[label={sec:orgf9b291e}]{Parametric modeling versus ML}
+\begin{frame}[label={sec:org575749a}]{Parametric modeling versus ML}
 \small
 \begin{block}{Parametric approach}
 Fit a parametric model for \( \nu \) (e.g., logistic regression). Estimate
@@ -181,7 +181,7 @@ Estimate $\Psi$ with
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org2efa82c}]{Targeted estimators}
+\begin{frame}[label={sec:org9bee06b}]{Targeted estimators}
 Semi-parametric efficiency theory tells us that an initial estimator can be
 improved by adding an augmentation term:
 
@@ -201,7 +201,7 @@ The term \(P{[\dot{\psi}(\blank, \hat{P}_n)]}\) can be interpreted as the
 first order bias due to the estimation of \(\nu\) with \(\hat{\nu}_n^{\text{RF}}\), and we approximate this with \(\empmeas{[\dot{\psi}(\blank, \hat{P}_n)]}\).
 \end{frame}
 
-\begin{frame}[label={sec:orgae3adca}]{Targeted estimators -- our setting}
+\begin{frame}[label={sec:orgcfecb75}]{Targeted estimators -- our setting}
 \small
 
 The EIF for our \(\Psi\) is well-known
@@ -241,7 +241,7 @@ where $\hat{\pi}_n$ is an estimator of $\pi$.
 
 
 
-\begin{frame}[label={sec:org2f62858},fragile]{Simulation study}
+\begin{frame}[label={sec:orgaf1fe4d},fragile]{Simulation study}
  \small
 
 \begin{enumerate}
@@ -269,13 +269,13 @@ Examine performance of the two estimators by comparing these 1000 random samples
 to the true ATE.
 \end{frame}
 
-\begin{frame}[label={sec:orge12ba4a}]{Result of simulation study}
+\begin{frame}[label={sec:orge7bd75b}]{Result of simulation study}
 \begin{center}
 \includegraphics[width=.9\linewidth]{naive-vs-targeted.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org91e4ec4},fragile]{Statistical inference}
+\begin{frame}[label={sec:org74f21f5},fragile]{Statistical inference}
  To quantify uncertainty we calculate confidence intervals. This procedure relies
 on an estimate of the asymptotic variance of our estimator.
 
@@ -300,7 +300,7 @@ based on the models we have already fitted.
 \end{frame}
 
 
-\begin{frame}[label={sec:org3675e11}]{References}
+\begin{frame}[label={sec:orgaeb7cc2}]{References}
 \footnotesize \bibliography{bib.bib}
 \end{frame}
 \end{document}
